@@ -101,43 +101,34 @@ details.cardimg img{
 /* ── font entries ── */
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
 @media (max-width:720px){.grid{grid-template-columns:1fr}}
-.entry{
-  background:var(--card-bg);border:1px solid var(--hairline);
-  padding:16px 16px 14px;display:flex;gap:14px;align-items:flex-start;
-}
+.entry{background:var(--card-bg);border:1px solid var(--hairline)}
 .entry.hide{display:none}
-.entry-no{
-  font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--ink-soft);
-  padding-top:6px;min-width:26px;text-align:right;
+.entry-head{display:flex;align-items:baseline;gap:10px;padding:14px 16px 12px}
+.entry-no{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--seal)}
+.entry-name{font-family:"Noto Serif TC",serif;font-weight:900;font-size:20px;letter-spacing:.05em;line-height:1.3}
+.entry-tag{margin-left:auto;font-size:12px;color:var(--ink-soft);white-space:nowrap}
+.unit{margin:0;border-top:1px solid var(--hairline)}
+.unit img{display:block;width:100%;background:#fff}
+.unit-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:6px 16px;border-top:1px solid var(--hairline);background:var(--paper);
 }
-.entry-main{flex:1;min-width:0}
-.entry-name{font-family:"Noto Serif TC",serif;font-weight:900;font-size:20px;letter-spacing:.05em;line-height:1.4}
-.entry-tag{font-size:12px;color:var(--seal);margin-top:2px}
-.pair{margin-top:10px}
-.pair figure{margin:0 0 10px}
-.pair img{display:block;width:100%;border:1px solid var(--hairline);background:#fff}
-.pair figcaption{font-size:11px;color:var(--ink-soft);letter-spacing:.15em;margin-top:4px}
-.scenes{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
-.scene{
-  font-size:12px;color:var(--ink-soft);background:var(--paper);
-  border:1px solid var(--hairline);padding:2px 8px;
+.unit-lab{font-size:12px;color:var(--ink);font-weight:600;letter-spacing:.12em;min-width:0}
+.unit-lab .sub{color:var(--ink-soft);font-weight:400;letter-spacing:.02em}
+.copybtn{
+  flex:none;border:0;background:transparent;color:var(--seal);cursor:pointer;
+  font-family:inherit;font-size:13px;letter-spacing:.08em;padding:10px 0 10px 10px;
+  touch-action:manipulation;transition:opacity .12s;
 }
-.scene.none{border-style:dashed;color:#b3aca3}
-
-/* ── seal copy button ── */
-.stamp-col{flex:none;display:flex;flex-direction:column;gap:8px}
-.stamp{
-  flex:none;width:58px;height:58px;border:2px solid var(--seal);color:var(--seal);
-  background:transparent;cursor:pointer;font-family:"Noto Serif TC",serif;font-weight:600;
-  font-size:12px;line-height:1.35;letter-spacing:.12em;
-  display:flex;align-items:center;justify-content:center;text-align:center;
-  border-radius:4px;transition:background .12s,color .12s,transform .12s;
-  touch-action:manipulation;
-}
-.stamp:hover{background:#c0341d14}
-.stamp:active{transform:scale(.94)}
+.copybtn::before{content:"⧉ ";font-size:12px}
+.copybtn:hover{text-decoration:underline;text-underline-offset:3px}
+.copybtn:active{opacity:.6}
+.copybtn:focus-visible{outline:2px solid var(--seal);outline-offset:2px}
+.copybtn.done{color:#fff;background:var(--seal);padding:6px 12px;border-radius:3px}
+.copybtn.done::before{content:""}
+.fits{padding:10px 16px 13px;font-size:12px;color:var(--ink-soft);border-top:1px solid var(--hairline)}
+.fits b{color:var(--ink);font-weight:600}
 .stamp:focus-visible,.chip:focus-visible,.copy-formula:focus-visible{outline:2px solid var(--seal);outline-offset:2px}
-.stamp.done{background:var(--seal);color:#fff;border-color:var(--seal-dark)}
 .copy-formula{
   margin-top:12px;border:1px solid var(--seal);color:var(--seal);background:transparent;
   font-family:inherit;font-size:13px;padding:7px 16px;cursor:pointer;letter-spacing:.1em;
@@ -487,32 +478,29 @@ CATS.forEach((c, i) => {
     const el = document.createElement("div");
     el.className = "entry";
     el.dataset.text = [name, tag, ...scenes, APPS[n] || ""].join(" ").toLowerCase();
+    const sceneKind = (APPS[n] || "").split(",")[0];
     el.innerHTML = `
-      <span class="entry-no">${String(n).padStart(2,"0")}</span>
-      <div class="entry-main">
+      <header class="entry-head">
+        <span class="entry-no">${String(n).padStart(2,"0")}</span>
         <p class="entry-name">${name}</p>
-        <p class="entry-tag">${tag}</p>
-        <div class="pair">
-          <figure>
-            <img loading="lazy" src="samples/${String(n).padStart(3,"0")}-${name}.webp" alt="「${name}」純字效果">
-            <figcaption>字</figcaption>
-          </figure>
-          <figure>
-            <img loading="lazy" src="samples/apps/${String(n).padStart(3,"0")}-${name}.webp" alt="「${name}」應用於${(APPS[n]||"").split(",")[0]}的效果">
-            <figcaption>應用</figcaption>
-          </figure>
+        <span class="entry-tag">${tag}</span>
+      </header>
+      <figure class="unit">
+        <img loading="lazy" src="samples/${String(n).padStart(3,"0")}-${name}.webp" alt="「${name}」純字效果">
+        <div class="unit-bar">
+          <span class="unit-lab">純字</span>
+          <button class="copybtn" type="button" aria-label="複製「${name}」字體提示詞">複製提示詞</button>
         </div>
-        <div class="scenes">${
-          scenes.length
-            ? scenes.map(s=>`<span class="scene">${s}</span>`).join("")
-            : `<span class="scene none">場景見圖卡</span>`
-        }</div>
-      </div>
-      <div class="stamp-col">
-        <button class="stamp" type="button" aria-label="複製「${name}」字體提示詞">字體<br>提示詞</button>
-        <button class="stamp" type="button" aria-label="複製「${name}」應用提示詞">應用<br>提示詞</button>
-      </div>`;
-    const [bFont, bApp] = el.querySelectorAll(".stamp");
+      </figure>
+      <figure class="unit">
+        <img loading="lazy" src="samples/apps/${String(n).padStart(3,"0")}-${name}.webp" alt="「${name}」應用於${sceneKind}的效果">
+        <div class="unit-bar">
+          <span class="unit-lab">應用<span class="sub">・${sceneKind}</span></span>
+          <button class="copybtn" type="button" aria-label="複製「${name}」應用提示詞">複製提示詞</button>
+        </div>
+      </figure>
+      <p class="fits"><b>適合</b>:${scenes.length ? scenes.join("・") : "見分類圖卡"}</p>`;
+    const [bFont, bApp] = el.querySelectorAll(".copybtn");
     bFont.addEventListener("click", ev => {
       copyText(promptOf(name));
       flash(ev.currentTarget, "已複製");
