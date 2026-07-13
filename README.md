@@ -181,4 +181,10 @@
 
 ## 來源
 
-圖卡與字體名稱整理來自「阿吉」的 Facebook 粉絲團貼文《做圖卡不要只顧漂亮。|第四篇》。本 repo 僅作個人提示詞參考用途。
+圖卡與字體名稱整理來自「數位生活小記 阿吉」的 Facebook 粉絲團貼文《做圖卡不要只顧漂亮。|第四篇》,歡迎追蹤:https://www.facebook.com/profile.php?id=61589913332541
+
+本 repo 僅作提示詞參考整理,內容著作權歸原作者所有。
+
+---
+
+整理:[GitHub](https://github.com/yazelin) | [Facebook](https://www.facebook.com/yaze.lin.gm) | [Buy Me a Coffee](https://buymeacoffee.com/yazelin)
