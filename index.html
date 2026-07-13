@@ -114,6 +114,7 @@ details.cardimg img{
 .entry-main{flex:1;min-width:0}
 .entry-name{font-family:"Noto Serif TC",serif;font-weight:900;font-size:20px;letter-spacing:.05em;line-height:1.4}
 .entry-tag{font-size:12px;color:var(--seal);margin-top:2px}
+.sample{display:block;width:100%;max-width:340px;margin-top:10px;border:1px solid var(--hairline);background:#fff}
 .scenes{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
 .scene{
   font-size:12px;color:var(--ink-soft);background:var(--paper);
@@ -165,7 +166,7 @@ footer .src a:hover{border-bottom-color:var(--seal)}
   <div class="wrap">
     <p class="hero-kicker">AI 生圖提示詞・字體樣本簿</p>
     <h1>一百種字體風格<span class="num">,</span>換一種<span class="num">,</span>感覺就不一樣</h1>
-    <p class="hero-sub">這裡的不是字型檔,是寫進提示詞的「字體風格名稱」。做圖卡、封面、海報時直接指定風格,比說「幫我換一個好看的字」快很多。每種風格旁邊蓋一下印章,就複製好一段提示詞。</p>
+    <p class="hero-sub">這裡的不是字型檔,是寫進提示詞的「字體風格名稱」。做圖卡、封面、海報時直接指定風格,比說「幫我換一個好看的字」快很多。每種風格附一張我們實際用提示詞生成的效果圖;旁邊蓋一下印章,就複製好一段提示詞。</p>
     <div class="formula">
       <p class="formula-label">提 示 詞 公 式</p>
       <pre>[主題與內容描述]
@@ -378,6 +379,7 @@ CATS.forEach((c, i) => {
       <div class="entry-main">
         <p class="entry-name">${name}</p>
         <p class="entry-tag">${tag}</p>
+        <img class="sample" loading="lazy" src="samples/${String(n).padStart(3,"0")}-${name}.webp" alt="「${name}」實測生成效果">
         <div class="scenes">${
           scenes.length
             ? scenes.map(s=>`<span class="scene">${s}</span>`).join("")
