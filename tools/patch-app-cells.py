@@ -51,25 +51,23 @@ def grid(sheet):
     xs = [0, boundary(cmean, csoft, cdark, w // 2, 30, w-30), w]
     return xs, ys
 
-for f in sorted(glob.glob(f"{SCRATCH}/fix-*.png")):
-    n = int(os.path.basename(f)[4:7])
+for f in sorted(glob.glob(f"{SCRATCH}/appfix-*.png")):
+    n = int(os.path.basename(f)[7:10])
     s = (n - 1) // 10 + 1
     i = (n - 1) % 10
     col, row = i % 2, i // 2
-    sheet_path = f"{SCRATCH}/sheet-{s:02d}.png"
+    sheet_path = f"{SCRATCH}/app-sheet-{s:02d}.png"
     sheet = Image.open(sheet_path).convert("RGB")
     xs, ys = grid(sheet)  # 每次重算:貼白格不影響格線偵測
     x0, x1, y0, y1 = xs[col], xs[col+1], ys[row], ys[row+1]
 
-    # 整格塗白(留格線 3px),修正圖等比縮放置中
+    # 應用格為滿版設計:cover 模式(放大填滿、置中裁掉溢出),無編號
     line = 3
     cw, ch = x1 - x0 - 2*line, y1 - y0 - 2*line
     fix = Image.open(f).convert("RGB")
-    fix.thumbnail((cw - 40, ch - 60), Image.LANCZOS)
-    cellbg = Image.new("RGB", (cw, ch), (252, 252, 251))
-    cellbg.paste(fix, ((cw - fix.width)//2, (ch - fix.height)//2))
-    sheet.paste(cellbg, (x0 + line, y0 + line))
-    d = ImageDraw.Draw(sheet)
-    d.text((x0 + 34, y0 + 26), str(n), fill=(110, 110, 110), font=FONT)
+    scale = max(cw / fix.width, ch / fix.height)
+    fix = fix.resize((round(fix.width*scale), round(fix.height*scale)), Image.LANCZOS)
+    fx, fy = (fix.width - cw)//2, (fix.height - ch)//2
+    sheet.paste(fix.crop((fx, fy, fx+cw, fy+ch)), (x0 + line, y0 + line))
     sheet.save(sheet_path)
-    print(f"patched {n} -> sheet-{s:02d} cell=({x0},{y0})-({x1},{y1})")
+    print(f"patched {n} -> app-sheet-{s:02d} cell=({x0},{y0})-({x1},{y1})")

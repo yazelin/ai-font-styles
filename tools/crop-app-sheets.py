@@ -1,17 +1,12 @@
 #!/usr/bin/env python3
-"""把 10 張 sheet(2欄×5列)裁成 100 張單獨樣本,輸出 webp 到 repo samples/
-
-格線由模型手畫、非等分,所以逐張偵測實際界線:
-1) 淺灰連續橫線(softcov 高、darkcov 低)且落在理想位置 ±WIN 內
-2) 找不到線 → 取窗口內最寬空白帶中心
-3) 再不行 → 用理想等分位置
-"""
-import os
+"""裁應用示例 sheet → samples/apps/NNN-名稱.webp(逐張偵測界線,同 crop-sheets.py)"""
+import os, sys
 import numpy as np
 from PIL import Image
 
 SCRATCH = os.path.dirname(os.path.abspath(__file__))
-OUT = "/home/ct/ai-font-styles/samples"
+sys.path.insert(0, SCRATCH)
+OUT = "/home/ct/ai-font-styles/samples/apps"
 os.makedirs(OUT, exist_ok=True)
 WIN = 120
 INSET = 8
@@ -62,15 +57,26 @@ def boundary(mean, soft, dark, ideal, lo, hi):
         return int(sum(best) / len(best))
     return ideal
 
+# 這 4 張的列高偏離等分達 140~174px,超出自動偵測窗;溝槽位置為實測值
+ROW_OVERRIDES = {
+    1: [384, 768, 1061, 1301],
+    6: [445, 866, 1254, 1563],
+    9: [409, 789, 1112, 1386],
+    10: [443, 884, 1216, 1505],
+}
+
 for s in range(10):
-    sheet = Image.open(f"{SCRATCH}/sheet-{s+1:02d}.png").convert("RGB")
+    sheet = Image.open(f"{SCRATCH}/app-sheet-{s+1:02d}.png").convert("RGB")
     g = np.asarray(sheet.convert("L"), dtype=float)
     h, w = g.shape
     rmean = g.mean(axis=1); rsoft = (g < 246).mean(axis=1); rdark = (g < 130).mean(axis=1)
     cmean = g.mean(axis=0); csoft = (g < 246).mean(axis=0); cdark = (g < 130).mean(axis=0)
-    ys = [0] + [boundary(rmean, rsoft, rdark, round(h*i/5), 30, h-30) for i in range(1, 5)] + [h]
+    if s + 1 in ROW_OVERRIDES:
+        ys = [0] + ROW_OVERRIDES[s + 1] + [h]
+    else:
+        ys = [0] + [boundary(rmean, rsoft, rdark, round(h*i/5), 30, h-30) for i in range(1, 5)] + [h]
     xs = [0, boundary(cmean, csoft, cdark, w // 2, 30, w-30), w]
-    print(f"sheet{s+1:02d} rows={ys[1:-1]} col={xs[1]}")
+    print(f"app{s+1:02d} rows={ys[1:-1]} col={xs[1]}")
     for i in range(10):
         col, row = i % 2, i // 2
         box = (xs[col]+INSET, ys[row]+INSET, xs[col+1]-INSET, ys[row+1]-INSET)

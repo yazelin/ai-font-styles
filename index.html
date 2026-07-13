@@ -113,7 +113,10 @@ details.cardimg img{
 .entry-main{flex:1;min-width:0}
 .entry-name{font-family:"Noto Serif TC",serif;font-weight:900;font-size:20px;letter-spacing:.05em;line-height:1.4}
 .entry-tag{font-size:12px;color:var(--seal);margin-top:2px}
-.sample{display:block;width:100%;max-width:340px;margin-top:10px;border:1px solid var(--hairline);background:#fff}
+.pair{display:flex;gap:8px;margin-top:10px;max-width:560px}
+.pair figure{flex:1;min-width:0;margin:0}
+.pair img{display:block;width:100%;border:1px solid var(--hairline);background:#fff}
+.pair figcaption{font-size:11px;color:var(--ink-soft);letter-spacing:.15em;margin-top:4px}
 .scenes{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
 .scene{
   font-size:12px;color:var(--ink-soft);background:var(--paper);
@@ -122,6 +125,7 @@ details.cardimg img{
 .scene.none{border-style:dashed;color:#b3aca3}
 
 /* ── seal copy button ── */
+.stamp-col{flex:none;display:flex;flex-direction:column;gap:8px}
 .stamp{
   flex:none;width:58px;height:58px;border:2px solid var(--seal);color:var(--seal);
   background:transparent;cursor:pointer;font-family:"Noto Serif TC",serif;font-weight:600;
@@ -333,7 +337,117 @@ const FONTS = [
   [100,"華麗哥特飾字","哥特風格字體",["品牌封面","奇幻視覺","暗黑主題封面"]],
 ];
 
+const APPS = {
+  1: "天然保養品品牌封面,大量留白、一瓶乳霜、米白色調",
+  2: "高血壓衛教知識圖卡,醫療藍白配色、小圖示",
+  3: "讀書方法課程封面,書桌與綠植、清新明亮",
+  4: "AI 攝影模組產品規格圖卡,深藍科技感、鏡頭特寫",
+  5: "街頭服飾新品貼文,黑底撕裂紋理、螢光點綴",
+  6: "時尚雜誌封面,人像剪影、米金色調",
+  7: "城市夜生活音樂活動視覺,霓虹城市背景",
+  8: "設計雙年展海報,黑白幾何構成",
+  9: "香氛蠟燭品牌封面,奶油色暈光、柔焦",
+  10: "閱讀成長知識圖卡,深綠底、燙金線條",
+  11: "科技趨勢年度報告封面,深藍星空漸層",
+  12: "香水產品主視覺,大理石與金屬質感",
+  13: "女性時尚雜誌封面,秋冬穿搭人像",
+  14: "品牌策略講座貼文,深色商務質感",
+  15: "精品手袋秋冬型錄封面,駝色系",
+  16: "深度分析專欄圖卡,墨綠底細金框",
+  17: "極簡藝術展海報,單色線條人臉插畫",
+  18: "設計提案簡報封面,方格紙與手繪家具",
+  19: "數據分析平台形象視覺,深底發光線框",
+  20: "婚禮邀請卡,淡粉花卉線描",
+  21: "早晨咖啡生活貼文,木桌咖啡杯側光",
+  22: "學習成長筆記圖卡,米色紙紋、小葉子",
+  23: "個人品牌形象卡,燙金簽名於深色卡面",
+  24: "黃昏天空心情語錄貼文",
+  25: "教學講義圖卡,稿紙紅線與鋼筆",
+  26: "今日重點整理筆記圖卡,橫線筆記本",
+  27: "重點批注教學圖,紅筆圈註與箭頭",
+  28: "商務 MEMO 備忘圖,清單勾選與紅色已核閱",
+  29: "生活美學貼文,粉色漸層與光斑",
+  30: "花藝品牌封面,淡粉玫瑰柔焦",
+  31: "夏日音樂節海報,吉他音符繽紛",
+  32: "秋日藝術季海報,暖色抽象色塊",
+  33: "植物小知識白板圖卡,盆栽簡筆插畫",
+  34: "我的小日常手帳貼文,花草邊框",
+  35: "期末複習重點海報,黃色螢光重點線",
+  36: "快樂畫畫日活動圖,太陽彩虹蠟筆畫",
+  37: "抽象形式藝術展海報,黑白灰構成",
+  38: "光影攝影展主視覺,黑底一道斜光",
+  39: "未來城市實驗計畫海報,藍圖與數據線",
+  40: "創作者生活隨筆封面,墨點紙紋",
+  41: "街頭文化祭海報,磚牆噴漆滴流",
+  42: "青年觀點社群貼文,撕紙拼貼黃黑",
+  43: "潮流生活貼文,粉藍糖果色雲朵",
+  44: "Live House 演出海報,黑底紅電吉他",
+  45: "娛樂爆點封面,放射線黃黑對比",
+  46: "流量密碼社群封面,火焰橘黃",
+  47: "迷因趣味貼文,漫畫爆炸框笑臉",
+  48: "犀利評論短影音封面,驚嘆號紅黑",
+  49: "趣味活動海報,彩色紙屑小恐龍",
+  50: "搞笑影片封面,誇張大笑表情漫畫風",
+  51: "線上課程開講圖卡,書本鉛筆 LIVE 標籤",
+  52: "親子派對活動海報,氣球彩帶",
+  53: "森林動物繪本封面,小熊兔子插畫",
+  54: "積木玩具商品廣告,散落積木顆粒",
+  55: "零食包裝設計,爆米花糖果繽紛",
+  56: "手作課活動海報,剪刀色紙膠帶",
+  57: "復古電玩海報,像素冒險小人金幣",
+  58: "街機挑戰賽封面,搖桿按鈕 INSERT COIN",
+  59: "像素風遊戲宣傳圖,像素草原與雲",
+  60: "AI 模組化產品圖卡,深底發光方塊",
+  61: "次世代科技發表會主視覺,深藍六角網格",
+  62: "未來感品牌封面,紫黑流體背景",
+  63: "虛擬建築作品集封面,藍色透視網格",
+  64: "賽博龐克遊戲海報,霓虹故障條紋",
+  65: "工程機械形象海報,挖土機剪影黃黑",
+  66: "機甲科幻遊戲封面,機器人剪影",
+  67: "工業品牌形象視覺,拉絲金屬鉚釘邊框",
+  68: "精密加工形象廣告,火花切割特寫",
+  69: "球隊勝利慶祝海報,球衣背號 23",
+  70: "賽車錦標賽海報,紅色賽車動態模糊",
+  71: "格鬥之夜賽事海報,拳套紅黑濺墨",
+  72: "電競戰隊主視覺,盾形隊徽藍紫光",
+  73: "紀念園區形象海報,石牆光影",
+  74: "建築事務所形象視覺,清水模立面藍圖線",
+  75: "建築構築展主視覺,混凝土紋理",
+  76: "美術館導視系統示意,黑底白箭頭圖標",
+  77: "經典老電影海報,泛黃膠片人像",
+  78: "懷舊街景海報,雨夜舊招牌",
+  79: "復古汽水廣告,做舊紙紋插畫",
+  80: "懷舊故事書封面,老照片相機",
+  81: "西部酒吧 Live 海報,沙漠仙人掌牛仔",
+  82: "西部通緝令海報,牛皮紙 WANTED 帽影",
+  83: "賞金獵人懸賞海報,懸賞金額舊紙",
+  84: "重機俱樂部海報,重機剪影公路",
+  85: "夜之城市霓虹招牌,雨夜街道倒影",
+  86: "台灣夜市菜單看板,品項與價格",
+  87: "街區散步筆記圖卡,便利貼膠帶勾選",
+  88: "限時促銷電商廣告,紅底閃電五折起",
+  89: "文化活動報頭視覺,水墨山水邊飾",
+  90: "書法文化展海報,墨韻宣紙",
+  91: "山水文化品牌封面,淡墨山水",
+  92: "禪意茶品牌視覺,石苔竹影留白",
+  93: "中式文創節慶圖卡,墨綠底仙鶴紋",
+  94: "國風牌匾視覺,木構屋簷金字匾額",
+  95: "國潮貼文視覺,石印紋黑金",
+  96: "東方節慶海報,紅日佛塔浪紋",
+  97: "暗黑影集風海報,月夜古堡蝙蝠",
+  98: "中世紀奇幻節活動海報,羊皮紙紋章",
+  99: "金屬樂團演出海報,黑底混沌尖刺",
+  100: "哥特風品牌封面,黑底玫瑰藤蔓"
+};
+
 const promptOf = name => `[主題與內容描述]\n標題使用「${name}」\n[情緒、版型、使用場景描述]`;
+const promptOfApp = (n, name) => {
+  const scene = APPS[n] || "";
+  const i = scene.indexOf(",");
+  const kind = i > 0 ? scene.slice(0, i) : scene;
+  const detail = i > 0 ? scene.slice(i + 1) : "";
+  return `設計一張${kind}:[你的主題與內容]\n標題文字「[你的標題]」,標題使用「${name}」${detail ? `\n畫面:${detail}` : ""}`;
+};
 
 async function copyText(text){
   try{ await navigator.clipboard.writeText(text); }
@@ -372,22 +486,39 @@ CATS.forEach((c, i) => {
   FONTS.slice(i*10, i*10+10).forEach(([n, name, tag, scenes]) => {
     const el = document.createElement("div");
     el.className = "entry";
-    el.dataset.text = [name, tag, ...scenes].join(" ").toLowerCase();
+    el.dataset.text = [name, tag, ...scenes, APPS[n] || ""].join(" ").toLowerCase();
     el.innerHTML = `
       <span class="entry-no">${String(n).padStart(2,"0")}</span>
       <div class="entry-main">
         <p class="entry-name">${name}</p>
         <p class="entry-tag">${tag}</p>
-        <img class="sample" loading="lazy" src="samples/${String(n).padStart(3,"0")}-${name}.webp" alt="「${name}」實測生成效果">
+        <div class="pair">
+          <figure>
+            <img loading="lazy" src="samples/${String(n).padStart(3,"0")}-${name}.webp" alt="「${name}」純字效果">
+            <figcaption>字</figcaption>
+          </figure>
+          <figure>
+            <img loading="lazy" src="samples/apps/${String(n).padStart(3,"0")}-${name}.webp" alt="「${name}」應用於${(APPS[n]||"").split(",")[0]}的效果">
+            <figcaption>應用</figcaption>
+          </figure>
+        </div>
         <div class="scenes">${
           scenes.length
             ? scenes.map(s=>`<span class="scene">${s}</span>`).join("")
             : `<span class="scene none">場景見圖卡</span>`
         }</div>
       </div>
-      <button class="stamp" type="button" aria-label="複製「${name}」提示詞">複製<br>提示詞</button>`;
-    el.querySelector(".stamp").addEventListener("click", ev => {
+      <div class="stamp-col">
+        <button class="stamp" type="button" aria-label="複製「${name}」字體提示詞">字體<br>提示詞</button>
+        <button class="stamp" type="button" aria-label="複製「${name}」應用提示詞">應用<br>提示詞</button>
+      </div>`;
+    const [bFont, bApp] = el.querySelectorAll(".stamp");
+    bFont.addEventListener("click", ev => {
       copyText(promptOf(name));
+      flash(ev.currentTarget, "已複製");
+    });
+    bApp.addEventListener("click", ev => {
+      copyText(promptOfApp(n, name));
       flash(ev.currentTarget, "已複製");
     });
     grid.appendChild(el);

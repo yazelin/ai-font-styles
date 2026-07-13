@@ -29,9 +29,14 @@
 
 ## 實測效果圖
 
-`samples/` 裡有全部 100 種風格的實測生成效果(webp),是我們把字體風格名稱加一句風格描述丟給 gpt-image 生成的真實結果——證明這套提示詞法真的有效。每 10 種合排一張的原稿在 `samples/sheets/`,生成用的完整 prompt 在 `tools/gen-sheets.sh`,裁切/修補腳本也在 `tools/`。
+每種字體都有兩張實測生成圖(gpt-image 真實輸出,非示意):
 
-線上版每個字體條目直接顯示對應效果圖。
+- `samples/` — **純字效果**:字體風格名稱本身以該風格呈現,prompt 為「風格名稱+一句風格描述」
+- `samples/apps/` — **應用效果**:把該字體套進真實設計場景(知識圖卡、雜誌封面、促銷廣告、遊戲海報…)的迷你成品
+
+每 10 種合排一張的原稿在 `samples/sheets/`(`sheet-*` 純字、`app-sheet-*` 應用),完整生成 prompt 在 `tools/gen-sheets.sh` 與 `tools/gen-app-sheets.sh`,錯字格單獨重生的修正 prompt 在 `tools/gen-app-fixes.sh`,裁切/貼回腳本也都在 `tools/`。
+
+線上版每個字體條目並列顯示「字/應用」兩張效果圖,並提供兩顆複製鈕:字體提示詞(純字公式)與應用提示詞(含該格實測用的場景描述)。
 
 ## 字體總覽
 
