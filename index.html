@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 生圖字體風格庫|100 種字體風格提示詞</title>
+<meta name="description" content="100 種 AI 生圖用的字體風格名稱,分 10 類,附成品圖卡對照。點一下複製提示詞,直接貼進 AI 繪圖工具。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#fbfaf7;
+  --ink:#1c1a18;
+  --ink-soft:#6f6862;
+  --seal:#c0341d;
+  --seal-dark:#9c2915;
+  --hairline:#e6e1d8;
+  --card-bg:#ffffff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{transition:none!important;animation:none!important}
+}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  line-height:1.6;
+}
+.serif{font-family:"Noto Serif TC","PingFang TC",serif}
+a{color:inherit}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+
+/* ── hero ── */
+header.hero{border-bottom:1px solid var(--hairline);padding:56px 0 40px}
+.hero-kicker{font-size:13px;letter-spacing:.35em;color:var(--seal);font-weight:600;margin-bottom:14px}
+h1{font-family:"Noto Serif TC",serif;font-weight:900;font-size:clamp(30px,6vw,52px);line-height:1.25;letter-spacing:.04em}
+h1 .num{color:var(--seal)}
+.hero-sub{margin-top:14px;color:var(--ink-soft);max-width:38em;font-size:15px}
+.formula{
+  margin-top:28px;background:var(--card-bg);border:1px solid var(--hairline);
+  border-left:4px solid var(--seal);padding:18px 20px;max-width:560px;
+}
+.formula-label{font-size:12px;letter-spacing:.25em;color:var(--ink-soft);margin-bottom:10px}
+.formula pre{
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:14px;line-height:1.9;
+  white-space:pre-wrap;color:var(--ink);
+}
+.formula pre b{color:var(--seal);font-weight:600}
+
+/* ── toolbar ── */
+.toolbar{
+  position:sticky;top:0;z-index:20;background:var(--paper);
+  border-bottom:1px solid var(--hairline);padding:12px 0;
+}
+.toolbar-inner{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.search{
+  flex:1;min-width:220px;display:flex;align-items:center;gap:8px;
+  background:var(--card-bg);border:1px solid var(--hairline);padding:9px 14px;
+}
+.search svg{flex:none;opacity:.45}
+.search input{
+  border:0;outline:0;background:transparent;width:100%;font-size:15px;color:var(--ink);
+  font-family:inherit;
+}
+.search input::placeholder{color:#a9a29a}
+.count{font-size:13px;color:var(--ink-soft);white-space:nowrap}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0 2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{
+  flex:none;font-size:13px;padding:5px 12px;border:1px solid var(--hairline);
+  background:var(--card-bg);color:var(--ink-soft);cursor:pointer;font-family:inherit;
+  transition:color .15s,border-color .15s;
+}
+.chip:hover{border-color:var(--seal);color:var(--seal)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.chip .n{font-family:ui-monospace,Menlo,monospace;font-size:11px;opacity:.6;margin-right:4px}
+
+/* ── sections ── */
+section.cat{padding:44px 0 8px}
+.cat-head{display:flex;align-items:baseline;gap:14px;border-bottom:2px solid var(--ink);padding-bottom:10px}
+.cat-no{font-family:ui-monospace,Menlo,monospace;font-size:14px;color:var(--seal);letter-spacing:.1em}
+.cat-head h2{font-family:"Noto Serif TC",serif;font-weight:900;font-size:clamp(20px,3.4vw,28px);letter-spacing:.06em}
+.cat-range{margin-left:auto;font-size:12px;color:var(--ink-soft);font-family:ui-monospace,Menlo,monospace}
+details.cardimg{margin:16px 0 4px}
+details.cardimg summary{
+  cursor:pointer;font-size:13px;color:var(--ink-soft);list-style:none;
+  display:inline-flex;align-items:center;gap:6px;user-select:none;
+}
+details.cardimg summary::-webkit-details-marker{display:none}
+details.cardimg summary::before{content:"▸";color:var(--seal);transition:transform .15s;display:inline-block}
+details.cardimg[open] summary::before{transform:rotate(90deg)}
+details.cardimg summary:hover{color:var(--seal)}
+details.cardimg img{
+  display:block;width:100%;max-width:680px;margin-top:12px;
+  border:1px solid var(--hairline);
+}
+
+/* ── font entries ── */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+@media (max-width:720px){.grid{grid-template-columns:1fr}}
+.entry{
+  background:var(--card-bg);border:1px solid var(--hairline);
+  padding:16px 16px 14px;display:flex;gap:14px;align-items:flex-start;
+}
+.entry.hide{display:none}
+.entry-no{
+  font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--ink-soft);
+  padding-top:6px;min-width:26px;text-align:right;
+}
+.entry-main{flex:1;min-width:0}
+.entry-name{font-family:"Noto Serif TC",serif;font-weight:900;font-size:20px;letter-spacing:.05em;line-height:1.4}
+.entry-tag{font-size:12px;color:var(--seal);margin-top:2px}
+.scenes{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.scene{
+  font-size:12px;color:var(--ink-soft);background:var(--paper);
+  border:1px solid var(--hairline);padding:2px 8px;
+}
+.scene.none{border-style:dashed;color:#b3aca3}
+
+/* ── seal copy button ── */
+.stamp{
+  flex:none;width:58px;height:58px;border:2px solid var(--seal);color:var(--seal);
+  background:transparent;cursor:pointer;font-family:"Noto Serif TC",serif;font-weight:600;
+  font-size:12px;line-height:1.35;letter-spacing:.12em;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  border-radius:4px;transition:background .12s,color .12s,transform .12s;
+  touch-action:manipulation;
+}
+.stamp:hover{background:#c0341d14}
+.stamp:active{transform:scale(.94)}
+.stamp:focus-visible,.chip:focus-visible,.copy-formula:focus-visible{outline:2px solid var(--seal);outline-offset:2px}
+.stamp.done{background:var(--seal);color:#fff;border-color:var(--seal-dark)}
+.copy-formula{
+  margin-top:12px;border:1px solid var(--seal);color:var(--seal);background:transparent;
+  font-family:inherit;font-size:13px;padding:7px 16px;cursor:pointer;letter-spacing:.1em;
+  transition:background .12s,color .12s;
+}
+.copy-formula:hover{background:#c0341d14}
+.copy-formula.done{background:var(--seal);color:#fff}
+
+.empty{padding:60px 0;text-align:center;color:var(--ink-soft);display:none}
+.empty .serif{font-size:20px;font-weight:600;color:var(--ink);margin-bottom:6px}
+
+/* ── footer ── */
+footer{border-top:1px solid var(--hairline);margin-top:64px;padding:36px 0 48px;font-size:14px;color:var(--ink-soft)}
+footer .src{max-width:44em}
+footer .src a{color:var(--seal);text-decoration:none;border-bottom:1px solid #c0341d55}
+footer .src a:hover{border-bottom-color:var(--seal)}
+.me{display:flex;gap:18px;margin-top:22px;flex-wrap:wrap}
+.me a{
+  display:inline-flex;align-items:center;gap:7px;text-decoration:none;color:var(--ink);
+  min-height:44px;
+}
+.me a:hover{color:var(--seal)}
+.me svg{width:18px;height:18px;fill:currentColor}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="hero-kicker">AI 生圖提示詞・字體樣本簿</p>
+    <h1>一百種字體風格<span class="num">,</span>換一種<span class="num">,</span>感覺就不一樣</h1>
+    <p class="hero-sub">這裡的不是字型檔,是寫進提示詞的「字體風格名稱」。做圖卡、封面、海報時直接指定風格,比說「幫我換一個好看的字」快很多。每種風格旁邊蓋一下印章,就複製好一段提示詞。</p>
+    <div class="formula">
+      <p class="formula-label">提 示 詞 公 式</p>
+      <pre>[主題與內容描述]
+標題使用「<b>字體風格名稱</b>」,內文使用「<b>字體風格名稱</b>」
+[情緒、版型、使用場景描述]</pre>
+      <button class="copy-formula" id="copyFormula" type="button">複製公式範本</button>
+    </div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="wrap">
+    <div class="toolbar-inner">
+      <label class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" placeholder="搜尋字體名稱、用途場景…(例:知識圖卡、促銷、手寫)" aria-label="搜尋字體風格">
+      </label>
+      <span class="count" id="count">100 種</span>
+    </div>
+    <div class="chips" id="chips" role="tablist" aria-label="分類篩選"></div>
+  </div>
+</div>
+
+<main class="wrap" id="main"></main>
+
+<div class="empty wrap" id="empty">
+  <p class="serif">沒有符合的字體風格</p>
+  <p>換個關鍵字試試,例如「品牌」「復古」「兒童」。</p>
+</div>
+
+<footer>
+  <div class="wrap">
+    <p class="src">圖卡與字體名稱整理自「數位生活小記 阿吉」的 Facebook 粉絲團貼文《做圖卡不要只顧漂亮。|第四篇》,內容著作權歸原作者所有,歡迎<a href="https://www.facebook.com/profile.php?id=61589913332541" target="_blank" rel="noopener">追蹤阿吉</a>取得第一手 AI 情報。</p>
+    <div class="me">
+      <a href="https://github.com/yazelin/ai-font-styles" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+        GitHub
+      </a>
+      <a href="https://www.facebook.com/yaze.lin.gm" target="_blank" rel="noopener" aria-label="Facebook" title="Facebook">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M24 12.07C24 5.41 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.04V9.41c0-3.02 1.8-4.7 4.54-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.5c-1.5 0-1.96.93-1.96 1.89v2.26h3.32l-.53 3.5h-2.8V24C19.62 23.1 24 18.1 24 12.07Z"/></svg>
+        Facebook
+      </a>
+      <a href="https://buymeacoffee.com/yazelin" target="_blank" rel="noopener" aria-label="Buy Me a Coffee" title="Buy Me a Coffee">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.22 6.52 19.9 4.9a2.02 2.02 0 0 0-1.98-1.62H6.08c-.97 0-1.8.68-1.98 1.62l-.32 1.62c-.11.57.04 1.15.41 1.6.1.12.22.23.34.32l.66 10.03A2.83 2.83 0 0 0 8 21.13h8c1.49 0 2.72-1.16 2.81-2.65l.66-10.04c.13-.09.24-.2.34-.32.37-.45.52-1.03.41-1.6ZM16.9 18.36c-.03.5-.44.88-.94.88H8c-.5 0-.91-.39-.94-.88L6.44 9.03h11.12l-.66 9.33ZM6.09 7.15l.31-1.62c.01-.06.07-.11.14-.11h11.84c.07 0 .13.05.14.11l.31 1.62H6.09Z"/></svg>
+        Buy Me a Coffee
+      </a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// scenes 為空的條目,是來源圖卡最底行被裁切、無法辨識,不臆測補寫
+const CATS = [
+  {no:"01", title:"商用基礎與品牌感", img:"cards/01-商用基礎與品牌感.jpg"},
+  {no:"02", title:"優雅襯線與細線",   img:"cards/02-優雅襯線與細線.jpg"},
+  {no:"03", title:"手寫紀錄與溫度感", img:"cards/03-手寫紀錄與溫度感.jpg"},
+  {no:"04", title:"曲線、手繪與藝術", img:"cards/04-曲線手繪與藝術.jpg"},
+  {no:"05", title:"塗鴉、誇張與趣味", img:"cards/05-塗鴉誇張與趣味.jpg"},
+  {no:"06", title:"童趣、課程與像素", img:"cards/06-童趣課程與像素.jpg"},
+  {no:"07", title:"未來、機械與運動", img:"cards/07-未來機械與運動.jpg"},
+  {no:"08", title:"運動、建築與復古", img:"cards/08-運動建築與復古.jpg"},
+  {no:"09", title:"西部、招牌與毛筆", img:"cards/09-西部招牌與毛筆.jpg"},
+  {no:"10", title:"國潮與哥特",       img:"cards/10-國潮與哥特.jpg"},
+];
+const FONTS = [
+  [1,"極簡品牌字","極簡無襯線體",["品牌封面","產品主視覺","知識圖卡"]],
+  [2,"現代知識字","極簡無襯線體",["知識圖卡","簡報標題","醫療衛教"]],
+  [3,"清爽標題字","極簡無襯線體",["知識圖卡","課程封面","簡報標題"]],
+  [4,"科技簡潔字","極簡無襯線體",["AI 圖卡","產品規格","科技主題"]],
+  [5,"潮流品牌字","時尚體",["品牌封面","潮流貼文","街頭風海報"]],
+  [6,"高級雜誌字","時尚體",["雜誌風封面","品牌封面","女性美學"]],
+  [7,"都市潮流字","時尚體",["潮流貼文","活動視覺","封面大標"]],
+  [8,"先鋒設計字","時尚體",["時尚海報","產品主視覺","社群封面"]],
+  [9,"溫柔細線字","細線體",["高級品牌封面","深度專欄","雜誌標題"]],
+  [10,"高級知識字","細線體",["知識圖卡","品牌封面","課程封面"]],
+  [11,"未來細線字","細線體",["品牌封面","科技專欄","產品主視覺"]],
+  [12,"輕奢細線字","細線體",["品牌封面","產品主視覺","雜誌標題"]],
+  [13,"雜誌襯線體","現代襯線體",["品牌封面","主視覺海報","高級雜誌"]],
+  [14,"商業襯線體","現代襯線體",["品牌文案大標","女性產品視覺","高級雜誌"]],
+  [15,"輕奢封面字","現代襯線體",["品牌封面","產品主視覺","雜誌風封面"]],
+  [16,"深度專欄字","現代襯線體",["知識圖卡","簡報章節頁","課程封面"]],
+  [17,"連續線稿體","單線字體",["概念視覺","海報主標","現代品牌標題"]],
+  [18,"草圖單線體","單線字體",["概念視覺","設計提案","海報主標"]],
+  [19,"科技線框字","單線字體",[]],
+  [20,"優雅單線字","單線字體",[]],
+  [21,"清新手跡字","極簡手寫體",["生活貼文","個人品牌","溫度系封面"]],
+  [22,"成長筆記字","極簡手寫體",["筆記圖卡","補充說明","日常分享"]],
+  [23,"個人簽名字","極簡手寫體",["品牌封面","主視覺","質感貼文"]],
+  [24,"情緒手寫字","極簡手寫體",["溫度貼文","心情語錄","重點標註"]],
+  [25,"鋼筆楷書字","硬筆書寫體",["教學圖卡","親子內容","講義筆記"]],
+  [26,"學生衡水體","硬筆書寫體",["筆記式圖卡","教學圖","老師講義"]],
+  [27,"批注手寫體","硬筆書寫體",["補充說明","重點批注","教學內容"]],
+  [28,"商務簽批體","硬筆書寫體",["筆記式圖卡","補充說明","重點標註"]],
+  [29,"柔和曲線字","彎曲字體",[]],
+  [30,"女性美學字","彎曲字體",["品牌封面","產品主視覺","雜誌風封面"]],
+  [31,"音樂律動字","彎曲字體",["活潑主題封面","社群吸睛大標","節慶活動"]],
+  [32,"藝術曲線字","彎曲字體",["創意海報","活潑封面","節慶活動"]],
+  [33,"輪廓手繪體","手繪字體",["教學筆記圖卡","白板風資訊圖","兒童教育"]],
+  [34,"插畫裝飾體","手繪字體",["童趣圖卡","生活貼文","手作視覺"]],
+  [35,"粗描海報體","手繪字體",["教學圖卡","白板風資訊圖","手作感海報"]],
+  [36,"童趣塗鴉體","手繪字體",["兒童內容","親子圖卡","趣味封面"]],
+  [37,"抽象藝術字","藝術字體",["概念主視覺","藝術展海報","設計提案"]],
+  [38,"展覽字","藝術字體",["品牌封面","藝術展海報","雜誌風封面"]],
+  [39,"概念實驗字","藝術字體",[]],
+  [40,"創作者標題字","藝術字體",[]],
+  [41,"街頭塗鴉字","塗鴉字體",["潮流海報","青年內容","街頭風貼文"]],
+  [42,"青年觀點字","塗鴉字體",["社群觀點貼文","街頭封面","活動視覺"]],
+  [43,"泡泡潮流塗鴉字","塗鴉字體",["潮流貼文","趣味封面","年輕化視覺"]],
+  [44,"爆裂搖滾塗鴉字","塗鴉字體",["演出海報","活動封面","強烈主視覺"]],
+  [45,"強衝擊標題字","誇張體",["吸睛貼文","娛樂封面","活動主視覺"]],
+  [46,"爆款封面字","誇張體",["社群封面","流量主題","強觀點貼文"]],
+  [47,"表情包標題字","誇張體",["迷因貼文","趣味圖卡","娛樂內容"]],
+  [48,"強觀點誇張字","誇張體",["評論主題","短影音封面","觀點貼文"]],
+  [49,"趣味標題字","趣味變形體",["創意圖卡","活動海報","趣味封面"]],
+  [50,"搞笑封面字","趣味變形體",["創意圖卡","活動海報","社群吸睛標題"]],
+  [51,"創意課程字","趣味變形體",["知識圖卡","課程封面","簡報章節頁"]],
+  [52,"兒童活動字","趣味變形體",["親子圖卡","兒童教育","活動海報"]],
+  [53,"兒童繪本體","童趣商業字體",["兒童封面","親子內容","故事圖卡"]],
+  [54,"樂高玩具體","童趣商業字體",["玩具主題","兒童商品","活動封面"]],
+  [55,"零食包裝字","童趣商業字體",["食品包裝","商品海報","趣味促銷"]],
+  [56,"剪紙拼貼字","童趣商業字體",["手作主題","親子圖卡","活動海報"]],
+  [57,"復古遊戲字","像素風格體",["遊戲主題","電玩海報","科技趣味圖卡"]],
+  [58,"街機遊戲字","像素風格體",["街機封面","TikTok 封面","遊戲活動"]],
+  [59,"像素字","像素風格體",["遊戲主題","科技趣味圖卡","復古資訊圖"]],
+  [60,"方塊模塊字","像素風格體",["AI 圖卡","產品規格圖","遊戲海報"]],
+  [61,"科技標題字","未來感字體",["AI 圖卡","科技海報","產品規格"]],
+  [62,"液態未來字","未來感字體",["品牌封面","科技主題","產品主視覺"]],
+  [63,"虛擬空間字","未來感字體",["數位媒體","建築作品集","資訊圖表"]],
+  [64,"賽博斷裂字","未來感字體",["未來主題海報","遊戲視覺","科技封面"]],
+  [65,"重工機械字","機械工業體",["工業視覺","機械海報","產品主視覺"]],
+  [66,"機甲裝甲字","機械工業體",["機械主題","科幻封面","遊戲視覺"]],
+  [67,"工業銘牌字","機械工業體",["產品規格","工業標示","品牌主視覺"]],
+  [68,"機械切割字","機械工業體",["機械海報","工業視覺","產品標題"]],
+  [69,"球衣號碼字","運動競技體",[]],
+  [70,"賽車速度字","運動競技體",[]],
+  [71,"格鬥力量字","運動競技體",["格鬥海報","力量型活動","運動封面"]],
+  [72,"電競戰隊字","運動競技體",["電競海報","戰隊視覺","遊戲封面"]],
+  [73,"紀念碑刻字","建築空間體",["建築主視覺","紀念性海報","空間品牌"]],
+  [74,"建築立面字","建築空間體",["建築提案","空間設計","品牌視覺"]],
+  [75,"水泥構築字","建築空間體",["建築海報","工業空間","展覽主視覺"]],
+  [76,"空間導視字","建築空間體",["導視系統","建築展覽","空間標識"]],
+  [77,"老電影字","復古字體",["品牌復古企劃","懷舊海報","餐飲包裝"]],
+  [78,"霓虹舊街","復古字體",["懷舊海報","節慶主視覺","品牌復古企劃"]],
+  [79,"復古廣告字","復古字體",["懷舊海報","品牌復古企劃","餐飲包裝"]],
+  [80,"復古故事字","復古字體",["品牌封面","懷舊海報","產品主視覺"]],
+  [81,"西部牛仔標題體","西部手寫字體",["個性品牌","冒險主題","復古酒吧海報"]],
+  [82,"通緝令字體","西部手寫字體",["冒險主題","復古酒吧海報","活動封面"]],
+  [83,"賞金字","西部手寫字體",["個性品牌","冒險主題","懷舊活動封面"]],
+  [84,"機車西部字","西部手寫字體",["個性品牌","產品主視覺","復古酒吧海報"]],
+  [85,"燈管字","城市商業招牌體",["城市風海報","店招概念圖","餐飲視覺"]],
+  [86,"夜市菜單字","城市商業招牌體",["街區主題內容","餐飲視覺","補充說明"]],
+  [87,"便利貼字","城市商業招牌體",["筆記式圖卡","街區主題內容","補充說明"]],
+  [88,"電商促銷字","城市商業招牌體",["城市風海報","店招概念圖","餐飲視覺"]],
+  [89,"報頭提題體","毛筆字",["文化活動海報","書法主題","東方品牌封面"]],
+  [90,"狂草書法體","毛筆字",["品牌封面","文化活動海報","雜誌風封面"]],
+  [91,"行書體","毛筆字",["品牌封面","文化海報","重點標註"]],
+  [92,"禪意體","毛筆字",["東方品牌封面","深度專欄","產品主視覺"]],
+  [93,"東方瘦金體","國潮體",["中式品牌視覺","文創設計","節慶圖卡"]],
+  [94,"國風牌匾體","國潮體",["國風海報","中式品牌","產品主視覺"]],
+  [95,"潮流篆意體","國潮體",["潮流貼文","文創設計","街頭風海報"]],
+  [96,"東方海報","國潮體",["國風海報","筆記式圖卡","節慶圖卡"]],
+  [97,"暗黑標題字","哥特風格字體",["影視風封面","暗黑主題海報","節慶活動"]],
+  [98,"中世紀字","哥特風格字體",["奇幻視覺","影視風封面","活動海報"]],
+  [99,"黑金屬尖刺字","哥特風格字體",["奇幻視覺","暗黑主題海報","產品主視覺"]],
+  [100,"華麗哥特飾字","哥特風格字體",["品牌封面","奇幻視覺","暗黑主題封面"]],
+];
+
+const promptOf = name => `[主題與內容描述]\n標題使用「${name}」\n[情緒、版型、使用場景描述]`;
+
+async function copyText(text){
+  try{ await navigator.clipboard.writeText(text); }
+  catch(e){
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    document.execCommand("copy"); ta.remove();
+  }
+}
+function flash(btn, doneText){
+  const orig = btn.dataset.orig ?? (btn.dataset.orig = btn.innerHTML);
+  btn.classList.add("done"); btn.innerHTML = doneText;
+  clearTimeout(btn._t);
+  btn._t = setTimeout(()=>{ btn.classList.remove("done"); btn.innerHTML = orig; }, 1400);
+}
+
+// build sections
+const main = document.getElementById("main");
+CATS.forEach((c, i) => {
+  const lo = i*10+1, hi = i*10+10;
+  const sec = document.createElement("section");
+  sec.className = "cat"; sec.id = "cat-" + c.no; sec.dataset.cat = i;
+  sec.innerHTML = `
+    <div class="cat-head">
+      <span class="cat-no">${c.no}</span>
+      <h2>${c.title}</h2>
+      <span class="cat-range">${String(lo).padStart(2,"0")}–${hi}</span>
+    </div>
+    <details class="cardimg">
+      <summary>看這一類的成品應用圖卡</summary>
+      <img loading="lazy" src="${c.img}" alt="${c.title} 字體圖卡(${lo}–${hi}),含每種字體的成品應用示例">
+    </details>
+    <div class="grid"></div>`;
+  const grid = sec.querySelector(".grid");
+  FONTS.slice(i*10, i*10+10).forEach(([n, name, tag, scenes]) => {
+    const el = document.createElement("div");
+    el.className = "entry";
+    el.dataset.text = [name, tag, ...scenes].join(" ").toLowerCase();
+    el.innerHTML = `
+      <span class="entry-no">${String(n).padStart(2,"0")}</span>
+      <div class="entry-main">
+        <p class="entry-name">${name}</p>
+        <p class="entry-tag">${tag}</p>
+        <div class="scenes">${
+          scenes.length
+            ? scenes.map(s=>`<span class="scene">${s}</span>`).join("")
+            : `<span class="scene none">場景見圖卡</span>`
+        }</div>
+      </div>
+      <button class="stamp" type="button" aria-label="複製「${name}」提示詞">複製<br>提示詞</button>`;
+    el.querySelector(".stamp").addEventListener("click", ev => {
+      copyText(promptOf(name));
+      flash(ev.currentTarget, "已複製");
+    });
+    grid.appendChild(el);
+  });
+  main.appendChild(sec);
+});
+
+// chips
+const chipsBox = document.getElementById("chips");
+let activeCat = -1;
+const allChip = document.createElement("button");
+allChip.className = "chip on"; allChip.type = "button"; allChip.textContent = "全部";
+chipsBox.appendChild(allChip);
+CATS.forEach((c, i) => {
+  const b = document.createElement("button");
+  b.className = "chip"; b.type = "button";
+  b.innerHTML = `<span class="n">${c.no}</span>${c.title}`;
+  b.addEventListener("click", () => { setCat(activeCat === i ? -1 : i); });
+  chipsBox.appendChild(b);
+});
+allChip.addEventListener("click", () => setCat(-1));
+function setCat(i){
+  activeCat = i;
+  [...chipsBox.children].forEach((b, k) => b.classList.toggle("on", k === i+1));
+  apply();
+  if(i >= 0) document.getElementById("cat-" + CATS[i].no).scrollIntoView();
+}
+
+// search
+const q = document.getElementById("q");
+const count = document.getElementById("count");
+const empty = document.getElementById("empty");
+q.addEventListener("input", apply);
+function apply(){
+  const kw = q.value.trim().toLowerCase();
+  let shown = 0;
+  document.querySelectorAll("section.cat").forEach(sec => {
+    const inCat = activeCat < 0 || +sec.dataset.cat === activeCat;
+    let secShown = 0;
+    sec.querySelectorAll(".entry").forEach(el => {
+      const hit = inCat && (!kw || el.dataset.text.includes(kw));
+      el.classList.toggle("hide", !hit);
+      if(hit) secShown++;
+    });
+    sec.style.display = secShown ? "" : "none";
+    shown += secShown;
+  });
+  count.textContent = shown + " 種";
+  empty.style.display = shown ? "none" : "block";
+}
+
+// formula copy
+document.getElementById("copyFormula").addEventListener("click", ev => {
+  copyText("[主題與內容描述]\n標題使用「____」,內文使用「____」\n[情緒、版型、使用場景描述]");
+  flash(ev.currentTarget, "已複製");
+});
+</script>
+</body>
+</html>
