@@ -170,7 +170,7 @@ footer .src a:hover{border-bottom-color:var(--seal)}
 <header class="hero">
   <div class="wrap">
     <p class="hero-kicker">AI 生圖提示詞・字體樣本簿</p>
-    <h1>一百種字體風格<span class="num">,</span>換一種<span class="num">,</span>感覺就不一樣</h1>
+    <h1>上百種字體風格<span class="num">,</span>每天多一種<span class="num">,</span>換一種感覺就不一樣</h1>
     <p class="hero-sub">這裡的不是字型檔,是寫進提示詞的「字體風格名稱」。做圖卡、封面、海報時直接指定風格,比說「幫我換一個好看的字」快很多。每種風格附一張我們實際用提示詞生成的效果圖;旁邊蓋一下印章,就複製好一段提示詞。</p>
     <div class="formula">
       <p class="formula-label">提 示 詞 公 式</p>
@@ -252,78 +252,131 @@ async function init(){
   const data = await (await fetch("fonts.json")).json();
   const CATS = data.groups;
   const byGroup = CATS.map(() => []);
-  data.fonts.forEach(f => byGroup[f.group].push(f));
+  data.fonts.forEach(f => {
+    f._text = [f.name, f.tag, ...f.scenes, f.app].join(" ").toLowerCase();
+    byGroup[f.group].push(f);
+  });
 
-  // build sections
   const main = document.getElementById("main");
-  CATS.forEach((c, i) => {
-    const list = byGroup[i];
-    if(!list.length) return;
+  const q = document.getElementById("q");
+  const count = document.getElementById("count");
+  const empty = document.getElementById("empty");
+  const chipsBox = document.getElementById("chips");
+  let activeCat = -1;
+
+  function entryEl(f){
+    const {n, name, tag, scenes, app} = f;
+    const el = document.createElement("div");
+    el.className = "entry";
+    const sceneKind = app.split(",")[0];
+    const nnn = String(n).padStart(3, "0");
+    el.innerHTML = `
+      <header class="entry-head">
+        <span class="entry-no">${String(n).padStart(2,"0")}</span>
+        <p class="entry-name">${name}</p>
+        ${f.source !== "aji" ? `<span class="entry-badge">擴充</span>` : ""}
+        <span class="entry-tag">${tag}</span>
+      </header>
+      <figure class="unit">
+        <img loading="lazy" decoding="async" src="samples/${nnn}-${name}.webp" alt="「${name}」純字效果">
+        <div class="unit-bar">
+          <span class="unit-lab">純字</span>
+          <button class="copybtn" type="button" aria-label="複製「${name}」字體提示詞">複製提示詞</button>
+        </div>
+      </figure>
+      <figure class="unit">
+        <img loading="lazy" decoding="async" src="samples/apps/${nnn}-${name}.webp" alt="「${name}」應用於${sceneKind}的效果">
+        <div class="unit-bar">
+          <span class="unit-lab">應用<span class="sub">・${sceneKind}</span></span>
+          <button class="copybtn" type="button" aria-label="複製「${name}」應用提示詞">複製提示詞</button>
+        </div>
+      </figure>
+      <p class="fits"><b>適合</b>:${scenes.length ? scenes.join("・") : "見分類圖卡"}</p>`;
+    const [bFont, bApp] = el.querySelectorAll(".copybtn");
+    bFont.addEventListener("click", ev => { copyText(promptOf(name)); flash(ev.currentTarget, "已複製"); });
+    bApp.addEventListener("click", ev => { copyText(promptOfApp(app, name)); flash(ev.currentTarget, "已複製"); });
+    return el;
+  }
+
+  function sectionEl(c, i, total){
     const sec = document.createElement("section");
-    sec.className = "cat"; sec.id = "cat-" + c.no; sec.dataset.cat = i;
+    sec.className = "cat"; sec.id = "cat-" + c.no;
+    if(i >= 0) sec.dataset.cat = i;
     sec.innerHTML = `
       <div class="cat-head">
         <span class="cat-no">${c.no}</span>
         <h2>${c.title}</h2>
-        <span class="cat-range">${list.length} 種</span>
+        <span class="cat-range">${total} 種</span>
       </div>
       ${c.card ? `<details class="cardimg">
         <summary>看這一類的成品應用圖卡</summary>
         <img loading="lazy" src="${c.card}" alt="${c.title} 字體圖卡,含每種字體的成品應用示例">
       </details>` : ""}
       <div class="grid"></div>`;
-    const grid = sec.querySelector(".grid");
-    list.forEach(f => {
-      const {n, name, tag, scenes, app} = f;
-      const el = document.createElement("div");
-      el.className = "entry";
-      el.dataset.text = [name, tag, ...scenes, app].join(" ").toLowerCase();
-      const sceneKind = app.split(",")[0];
-      const nnn = String(n).padStart(3, "0");
-      el.innerHTML = `
-        <header class="entry-head">
-          <span class="entry-no">${String(n).padStart(2,"0")}</span>
-          <p class="entry-name">${name}</p>
-          ${f.source !== "aji" ? `<span class="entry-badge">擴充</span>` : ""}
-          <span class="entry-tag">${tag}</span>
-        </header>
-        <figure class="unit">
-          <img loading="lazy" src="samples/${nnn}-${name}.webp" alt="「${name}」純字效果">
-          <div class="unit-bar">
-            <span class="unit-lab">純字</span>
-            <button class="copybtn" type="button" aria-label="複製「${name}」字體提示詞">複製提示詞</button>
-          </div>
-        </figure>
-        <figure class="unit">
-          <img loading="lazy" src="samples/apps/${nnn}-${name}.webp" alt="「${name}」應用於${sceneKind}的效果">
-          <div class="unit-bar">
-            <span class="unit-lab">應用<span class="sub">・${sceneKind}</span></span>
-            <button class="copybtn" type="button" aria-label="複製「${name}」應用提示詞">複製提示詞</button>
-          </div>
-        </figure>
-        <p class="fits"><b>適合</b>:${scenes.length ? scenes.join("・") : "見分類圖卡"}</p>`;
-      const [bFont, bApp] = el.querySelectorAll(".copybtn");
-      bFont.addEventListener("click", ev => {
-        copyText(promptOf(name));
-        flash(ev.currentTarget, "已複製");
-      });
-      bApp.addEventListener("click", ev => {
-        copyText(promptOfApp(app, name));
-        flash(ev.currentTarget, "已複製");
-      });
-      grid.appendChild(el);
+    return sec;
+  }
+
+  // 漸進渲染:items 是「標題/條目」的扁平清單,滾到底才建下一批 DOM
+  const BATCH = 12;
+  let items = [], rendered = 0, curGrid = null, filteredTotal = 0;
+
+  function buildItems(){
+    const kw = q.value.trim().toLowerCase();
+    const match = f => !kw || f._text.includes(kw);
+    items = []; filteredTotal = 0;
+    if(activeCat < 0){
+      const latest = data.fonts.filter(f => f.source !== "aji" && match(f)).sort((a,b) => b.n - a.n);
+      if(latest.length){
+        items.push({head: {no: "新", title: "最新擴充", card: null}, cat: -1, total: latest.length});
+        latest.forEach(f => items.push({font: f}));
+      }
+    }
+    CATS.forEach((c, i) => {
+      if(activeCat >= 0 && activeCat !== i) return;
+      const list = byGroup[i].filter(match);
+      filteredTotal += list.length;
+      if(!list.length) return;
+      items.push({head: c, cat: i, total: list.length});
+      list.forEach(f => items.push({font: f}));
     });
-    main.appendChild(sec);
-  });
+    if(activeCat < 0 && !filteredTotal) items = [];
+  }
+
+  const sentinel = document.createElement("div");
+  sentinel.style.height = "1px";
+  main.after(sentinel);
+  const io = new IntersectionObserver(es => { if(es[0].isIntersecting) renderMore(); }, {rootMargin: "800px"});
+  io.observe(sentinel);
+
+  function renderMore(){
+    const stop = Math.min(rendered + BATCH, items.length);
+    for(; rendered < stop; rendered++){
+      const it = items[rendered];
+      if(it.head){
+        const sec = sectionEl(it.head, it.cat, it.total);
+        curGrid = sec.querySelector(".grid");
+        main.appendChild(sec);
+      } else {
+        curGrid.appendChild(entryEl(it.font));
+      }
+    }
+    // 批次結束時哨兵仍在預載範圍內就繼續補
+    if(rendered < items.length && sentinel.getBoundingClientRect().top < innerHeight + 800) renderMore();
+  }
+
+  function apply(){
+    buildItems();
+    main.innerHTML = ""; rendered = 0; curGrid = null;
+    renderMore();
+    count.textContent = filteredTotal + " 種";
+    empty.style.display = filteredTotal ? "none" : "block";
+  }
 
   // chips
-  const chipsBox = document.getElementById("chips");
-  let activeCat = -1;
   const allChip = document.createElement("button");
   allChip.className = "chip on"; allChip.type = "button"; allChip.textContent = "全部";
   chipsBox.appendChild(allChip);
   CATS.forEach((c, i) => {
-    if(!byGroup[i].length) return;
     const b = document.createElement("button");
     b.className = "chip"; b.type = "button"; b.dataset.cat = i;
     b.innerHTML = `<span class="n">${c.no}</span>${c.title}`;
@@ -335,31 +388,11 @@ async function init(){
     activeCat = i;
     [...chipsBox.children].forEach(b => b.classList.toggle("on", (i < 0 && b === allChip) || +b.dataset.cat === i));
     apply();
-    if(i >= 0) document.getElementById("cat-" + CATS[i].no).scrollIntoView();
+    if(i >= 0) scrollTo({top: 0});
   }
 
-  // search
-  const q = document.getElementById("q");
-  const count = document.getElementById("count");
-  const empty = document.getElementById("empty");
-  q.addEventListener("input", apply);
-  function apply(){
-    const kw = q.value.trim().toLowerCase();
-    let shown = 0;
-    document.querySelectorAll("section.cat").forEach(sec => {
-      const inCat = activeCat < 0 || +sec.dataset.cat === activeCat;
-      let secShown = 0;
-      sec.querySelectorAll(".entry").forEach(el => {
-        const hit = inCat && (!kw || el.dataset.text.includes(kw));
-        el.classList.toggle("hide", !hit);
-        if(hit) secShown++;
-      });
-      sec.style.display = secShown ? "" : "none";
-      shown += secShown;
-    });
-    count.textContent = shown + " 種";
-    empty.style.display = shown ? "none" : "block";
-  }
+  let debounce;
+  q.addEventListener("input", () => { clearTimeout(debounce); debounce = setTimeout(apply, 150); });
   apply();
 }
 init();
