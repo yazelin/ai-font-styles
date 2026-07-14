@@ -1,0 +1,43 @@
+name: Daily font expansion
+
+on:
+  schedule:
+    - cron: "30 2 * * *"   # 10:30 台北時間
+  workflow_dispatch:
+
+concurrency:
+  group: daily-font
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  add-font:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install pillow
+
+      - name: Generate and verify today's font
+        id: gen
+        env:
+          CODEX_IMAGE_BASE_URL: ${{ secrets.CODEX_IMAGE_BASE_URL }}
+          CODEX_IMAGE_KEY: ${{ secrets.CODEX_IMAGE_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python tools/daily_font.py
+
+      - name: Commit and push
+        if: steps.gen.outputs.added == '1'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add fonts.json queue.json samples/
+          git commit -m "每日擴充:#${{ steps.gen.outputs.font_no }} ${{ steps.gen.outputs.font_name }}"
+          git push
