@@ -117,6 +117,7 @@ details.cardimg img{
 .entry-no{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--seal)}
 .entry-name{font-family:"Noto Serif TC",serif;font-weight:900;font-size:20px;letter-spacing:.05em;line-height:1.3}
 .entry-tag{margin-left:auto;font-size:12px;color:var(--ink-soft);white-space:nowrap}
+.entry-badge{font-size:11px;color:var(--seal);border:1px solid var(--seal);border-radius:3px;padding:0 5px;line-height:1.6;white-space:nowrap}
 .unit{margin:0;border-top:1px solid var(--hairline)}
 .unit img{display:block;width:100%;background:#fff}
 .unit-bar{
@@ -222,231 +223,12 @@ footer .src a:hover{border-bottom-color:var(--seal)}
 </footer>
 
 <script>
-// scenes 為空的條目,是來源圖卡最底行被裁切、無法辨識,不臆測補寫
-const CATS = [
-  {no:"01", title:"商用基礎與品牌感", img:"cards/01-商用基礎與品牌感.jpg"},
-  {no:"02", title:"優雅襯線與細線",   img:"cards/02-優雅襯線與細線.jpg"},
-  {no:"03", title:"手寫紀錄與溫度感", img:"cards/03-手寫紀錄與溫度感.jpg"},
-  {no:"04", title:"曲線、手繪與藝術", img:"cards/04-曲線手繪與藝術.jpg"},
-  {no:"05", title:"塗鴉、誇張與趣味", img:"cards/05-塗鴉誇張與趣味.jpg"},
-  {no:"06", title:"童趣、課程與像素", img:"cards/06-童趣課程與像素.jpg"},
-  {no:"07", title:"未來、機械與運動", img:"cards/07-未來機械與運動.jpg"},
-  {no:"08", title:"運動、建築與復古", img:"cards/08-運動建築與復古.jpg"},
-  {no:"09", title:"西部、招牌與毛筆", img:"cards/09-西部招牌與毛筆.jpg"},
-  {no:"10", title:"國潮與哥特",       img:"cards/10-國潮與哥特.jpg"},
-];
-const FONTS = [
-  [1,"極簡品牌字","極簡無襯線體",["品牌封面","產品主視覺","知識圖卡"]],
-  [2,"現代知識字","極簡無襯線體",["知識圖卡","簡報標題","醫療衛教"]],
-  [3,"清爽標題字","極簡無襯線體",["知識圖卡","課程封面","簡報標題"]],
-  [4,"科技簡潔字","極簡無襯線體",["AI 圖卡","產品規格","科技主題"]],
-  [5,"潮流品牌字","時尚體",["品牌封面","潮流貼文","街頭風海報"]],
-  [6,"高級雜誌字","時尚體",["雜誌風封面","品牌封面","女性美學"]],
-  [7,"都市潮流字","時尚體",["潮流貼文","活動視覺","封面大標"]],
-  [8,"先鋒設計字","時尚體",["時尚海報","產品主視覺","社群封面"]],
-  [9,"溫柔細線字","細線體",["高級品牌封面","深度專欄","雜誌標題"]],
-  [10,"高級知識字","細線體",["知識圖卡","品牌封面","課程封面"]],
-  [11,"未來細線字","細線體",["品牌封面","科技專欄","產品主視覺"]],
-  [12,"輕奢細線字","細線體",["品牌封面","產品主視覺","雜誌標題"]],
-  [13,"雜誌襯線體","現代襯線體",["品牌封面","主視覺海報","高級雜誌"]],
-  [14,"商業襯線體","現代襯線體",["品牌文案大標","女性產品視覺","高級雜誌"]],
-  [15,"輕奢封面字","現代襯線體",["品牌封面","產品主視覺","雜誌風封面"]],
-  [16,"深度專欄字","現代襯線體",["知識圖卡","簡報章節頁","課程封面"]],
-  [17,"連續線稿體","單線字體",["概念視覺","海報主標","現代品牌標題"]],
-  [18,"草圖單線體","單線字體",["概念視覺","設計提案","海報主標"]],
-  [19,"科技線框字","單線字體",[]],
-  [20,"優雅單線字","單線字體",[]],
-  [21,"清新手跡字","極簡手寫體",["生活貼文","個人品牌","溫度系封面"]],
-  [22,"成長筆記字","極簡手寫體",["筆記圖卡","補充說明","日常分享"]],
-  [23,"個人簽名字","極簡手寫體",["品牌封面","主視覺","質感貼文"]],
-  [24,"情緒手寫字","極簡手寫體",["溫度貼文","心情語錄","重點標註"]],
-  [25,"鋼筆楷書字","硬筆書寫體",["教學圖卡","親子內容","講義筆記"]],
-  [26,"學生衡水體","硬筆書寫體",["筆記式圖卡","教學圖","老師講義"]],
-  [27,"批注手寫體","硬筆書寫體",["補充說明","重點批注","教學內容"]],
-  [28,"商務簽批體","硬筆書寫體",["筆記式圖卡","補充說明","重點標註"]],
-  [29,"柔和曲線字","彎曲字體",[]],
-  [30,"女性美學字","彎曲字體",["品牌封面","產品主視覺","雜誌風封面"]],
-  [31,"音樂律動字","彎曲字體",["活潑主題封面","社群吸睛大標","節慶活動"]],
-  [32,"藝術曲線字","彎曲字體",["創意海報","活潑封面","節慶活動"]],
-  [33,"輪廓手繪體","手繪字體",["教學筆記圖卡","白板風資訊圖","兒童教育"]],
-  [34,"插畫裝飾體","手繪字體",["童趣圖卡","生活貼文","手作視覺"]],
-  [35,"粗描海報體","手繪字體",["教學圖卡","白板風資訊圖","手作感海報"]],
-  [36,"童趣塗鴉體","手繪字體",["兒童內容","親子圖卡","趣味封面"]],
-  [37,"抽象藝術字","藝術字體",["概念主視覺","藝術展海報","設計提案"]],
-  [38,"展覽字","藝術字體",["品牌封面","藝術展海報","雜誌風封面"]],
-  [39,"概念實驗字","藝術字體",[]],
-  [40,"創作者標題字","藝術字體",[]],
-  [41,"街頭塗鴉字","塗鴉字體",["潮流海報","青年內容","街頭風貼文"]],
-  [42,"青年觀點字","塗鴉字體",["社群觀點貼文","街頭封面","活動視覺"]],
-  [43,"泡泡潮流塗鴉字","塗鴉字體",["潮流貼文","趣味封面","年輕化視覺"]],
-  [44,"爆裂搖滾塗鴉字","塗鴉字體",["演出海報","活動封面","強烈主視覺"]],
-  [45,"強衝擊標題字","誇張體",["吸睛貼文","娛樂封面","活動主視覺"]],
-  [46,"爆款封面字","誇張體",["社群封面","流量主題","強觀點貼文"]],
-  [47,"表情包標題字","誇張體",["迷因貼文","趣味圖卡","娛樂內容"]],
-  [48,"強觀點誇張字","誇張體",["評論主題","短影音封面","觀點貼文"]],
-  [49,"趣味標題字","趣味變形體",["創意圖卡","活動海報","趣味封面"]],
-  [50,"搞笑封面字","趣味變形體",["創意圖卡","活動海報","社群吸睛標題"]],
-  [51,"創意課程字","趣味變形體",["知識圖卡","課程封面","簡報章節頁"]],
-  [52,"兒童活動字","趣味變形體",["親子圖卡","兒童教育","活動海報"]],
-  [53,"兒童繪本體","童趣商業字體",["兒童封面","親子內容","故事圖卡"]],
-  [54,"樂高玩具體","童趣商業字體",["玩具主題","兒童商品","活動封面"]],
-  [55,"零食包裝字","童趣商業字體",["食品包裝","商品海報","趣味促銷"]],
-  [56,"剪紙拼貼字","童趣商業字體",["手作主題","親子圖卡","活動海報"]],
-  [57,"復古遊戲字","像素風格體",["遊戲主題","電玩海報","科技趣味圖卡"]],
-  [58,"街機遊戲字","像素風格體",["街機封面","TikTok 封面","遊戲活動"]],
-  [59,"像素字","像素風格體",["遊戲主題","科技趣味圖卡","復古資訊圖"]],
-  [60,"方塊模塊字","像素風格體",["AI 圖卡","產品規格圖","遊戲海報"]],
-  [61,"科技標題字","未來感字體",["AI 圖卡","科技海報","產品規格"]],
-  [62,"液態未來字","未來感字體",["品牌封面","科技主題","產品主視覺"]],
-  [63,"虛擬空間字","未來感字體",["數位媒體","建築作品集","資訊圖表"]],
-  [64,"賽博斷裂字","未來感字體",["未來主題海報","遊戲視覺","科技封面"]],
-  [65,"重工機械字","機械工業體",["工業視覺","機械海報","產品主視覺"]],
-  [66,"機甲裝甲字","機械工業體",["機械主題","科幻封面","遊戲視覺"]],
-  [67,"工業銘牌字","機械工業體",["產品規格","工業標示","品牌主視覺"]],
-  [68,"機械切割字","機械工業體",["機械海報","工業視覺","產品標題"]],
-  [69,"球衣號碼字","運動競技體",[]],
-  [70,"賽車速度字","運動競技體",[]],
-  [71,"格鬥力量字","運動競技體",["格鬥海報","力量型活動","運動封面"]],
-  [72,"電競戰隊字","運動競技體",["電競海報","戰隊視覺","遊戲封面"]],
-  [73,"紀念碑刻字","建築空間體",["建築主視覺","紀念性海報","空間品牌"]],
-  [74,"建築立面字","建築空間體",["建築提案","空間設計","品牌視覺"]],
-  [75,"水泥構築字","建築空間體",["建築海報","工業空間","展覽主視覺"]],
-  [76,"空間導視字","建築空間體",["導視系統","建築展覽","空間標識"]],
-  [77,"老電影字","復古字體",["品牌復古企劃","懷舊海報","餐飲包裝"]],
-  [78,"霓虹舊街","復古字體",["懷舊海報","節慶主視覺","品牌復古企劃"]],
-  [79,"復古廣告字","復古字體",["懷舊海報","品牌復古企劃","餐飲包裝"]],
-  [80,"復古故事字","復古字體",["品牌封面","懷舊海報","產品主視覺"]],
-  [81,"西部牛仔標題體","西部手寫字體",["個性品牌","冒險主題","復古酒吧海報"]],
-  [82,"通緝令字體","西部手寫字體",["冒險主題","復古酒吧海報","活動封面"]],
-  [83,"賞金字","西部手寫字體",["個性品牌","冒險主題","懷舊活動封面"]],
-  [84,"機車西部字","西部手寫字體",["個性品牌","產品主視覺","復古酒吧海報"]],
-  [85,"燈管字","城市商業招牌體",["城市風海報","店招概念圖","餐飲視覺"]],
-  [86,"夜市菜單字","城市商業招牌體",["街區主題內容","餐飲視覺","補充說明"]],
-  [87,"便利貼字","城市商業招牌體",["筆記式圖卡","街區主題內容","補充說明"]],
-  [88,"電商促銷字","城市商業招牌體",["城市風海報","店招概念圖","餐飲視覺"]],
-  [89,"報頭提題體","毛筆字",["文化活動海報","書法主題","東方品牌封面"]],
-  [90,"狂草書法體","毛筆字",["品牌封面","文化活動海報","雜誌風封面"]],
-  [91,"行書體","毛筆字",["品牌封面","文化海報","重點標註"]],
-  [92,"禪意體","毛筆字",["東方品牌封面","深度專欄","產品主視覺"]],
-  [93,"東方瘦金體","國潮體",["中式品牌視覺","文創設計","節慶圖卡"]],
-  [94,"國風牌匾體","國潮體",["國風海報","中式品牌","產品主視覺"]],
-  [95,"潮流篆意體","國潮體",["潮流貼文","文創設計","街頭風海報"]],
-  [96,"東方海報","國潮體",["國風海報","筆記式圖卡","節慶圖卡"]],
-  [97,"暗黑標題字","哥特風格字體",["影視風封面","暗黑主題海報","節慶活動"]],
-  [98,"中世紀字","哥特風格字體",["奇幻視覺","影視風封面","活動海報"]],
-  [99,"黑金屬尖刺字","哥特風格字體",["奇幻視覺","暗黑主題海報","產品主視覺"]],
-  [100,"華麗哥特飾字","哥特風格字體",["品牌封面","奇幻視覺","暗黑主題封面"]],
-];
-
-const APPS = {
-  1: "天然保養品品牌封面,大量留白、一瓶乳霜、米白色調",
-  2: "高血壓衛教知識圖卡,醫療藍白配色、小圖示",
-  3: "讀書方法課程封面,書桌與綠植、清新明亮",
-  4: "AI 攝影模組產品規格圖卡,深藍科技感、鏡頭特寫",
-  5: "街頭服飾新品貼文,黑底撕裂紋理、螢光點綴",
-  6: "時尚雜誌封面,人像剪影、米金色調",
-  7: "城市夜生活音樂活動視覺,霓虹城市背景",
-  8: "設計雙年展海報,黑白幾何構成",
-  9: "香氛蠟燭品牌封面,奶油色暈光、柔焦",
-  10: "閱讀成長知識圖卡,深綠底、燙金線條",
-  11: "科技趨勢年度報告封面,深藍星空漸層",
-  12: "香水產品主視覺,大理石與金屬質感",
-  13: "女性時尚雜誌封面,秋冬穿搭人像",
-  14: "品牌策略講座貼文,深色商務質感",
-  15: "精品手袋秋冬型錄封面,駝色系",
-  16: "深度分析專欄圖卡,墨綠底細金框",
-  17: "極簡藝術展海報,單色線條人臉插畫",
-  18: "設計提案簡報封面,方格紙與手繪家具",
-  19: "數據分析平台形象視覺,深底發光線框",
-  20: "婚禮邀請卡,淡粉花卉線描",
-  21: "早晨咖啡生活貼文,木桌咖啡杯側光",
-  22: "學習成長筆記圖卡,米色紙紋、小葉子",
-  23: "個人品牌形象卡,燙金簽名於深色卡面",
-  24: "黃昏天空心情語錄貼文",
-  25: "教學講義圖卡,稿紙紅線與鋼筆",
-  26: "今日重點整理筆記圖卡,橫線筆記本",
-  27: "重點批注教學圖,紅筆圈註與箭頭",
-  28: "商務 MEMO 備忘圖,清單勾選與紅色已核閱",
-  29: "生活美學貼文,粉色漸層與光斑",
-  30: "花藝品牌封面,淡粉玫瑰柔焦",
-  31: "夏日音樂節海報,吉他音符繽紛",
-  32: "秋日藝術季海報,暖色抽象色塊",
-  33: "植物小知識白板圖卡,盆栽簡筆插畫",
-  34: "我的小日常手帳貼文,花草邊框",
-  35: "期末複習重點海報,黃色螢光重點線",
-  36: "快樂畫畫日活動圖,太陽彩虹蠟筆畫",
-  37: "抽象形式藝術展海報,黑白灰構成",
-  38: "光影攝影展主視覺,黑底一道斜光",
-  39: "未來城市實驗計畫海報,藍圖與數據線",
-  40: "創作者生活隨筆封面,墨點紙紋",
-  41: "街頭文化祭海報,磚牆噴漆滴流",
-  42: "青年觀點社群貼文,撕紙拼貼黃黑",
-  43: "潮流生活貼文,粉藍糖果色雲朵",
-  44: "Live House 演出海報,黑底紅電吉他",
-  45: "娛樂爆點封面,放射線黃黑對比",
-  46: "流量密碼社群封面,火焰橘黃",
-  47: "迷因趣味貼文,漫畫爆炸框笑臉",
-  48: "犀利評論短影音封面,驚嘆號紅黑",
-  49: "趣味活動海報,彩色紙屑小恐龍",
-  50: "搞笑影片封面,誇張大笑表情漫畫風",
-  51: "線上課程開講圖卡,書本鉛筆 LIVE 標籤",
-  52: "親子派對活動海報,氣球彩帶",
-  53: "森林動物繪本封面,小熊兔子插畫",
-  54: "積木玩具商品廣告,散落積木顆粒",
-  55: "零食包裝設計,爆米花糖果繽紛",
-  56: "手作課活動海報,剪刀色紙膠帶",
-  57: "復古電玩海報,像素冒險小人金幣",
-  58: "街機挑戰賽封面,搖桿按鈕 INSERT COIN",
-  59: "像素風遊戲宣傳圖,像素草原與雲",
-  60: "AI 模組化產品圖卡,深底發光方塊",
-  61: "次世代科技發表會主視覺,深藍六角網格",
-  62: "未來感品牌封面,紫黑流體背景",
-  63: "虛擬建築作品集封面,藍色透視網格",
-  64: "賽博龐克遊戲海報,霓虹故障條紋",
-  65: "工程機械形象海報,挖土機剪影黃黑",
-  66: "機甲科幻遊戲封面,機器人剪影",
-  67: "工業品牌形象視覺,拉絲金屬鉚釘邊框",
-  68: "精密加工形象廣告,火花切割特寫",
-  69: "球隊勝利慶祝海報,球衣背號 23",
-  70: "賽車錦標賽海報,紅色賽車動態模糊",
-  71: "格鬥之夜賽事海報,拳套紅黑濺墨",
-  72: "電競戰隊主視覺,盾形隊徽藍紫光",
-  73: "紀念園區形象海報,石牆光影",
-  74: "建築事務所形象視覺,清水模立面藍圖線",
-  75: "建築構築展主視覺,混凝土紋理",
-  76: "美術館導視系統示意,黑底白箭頭圖標",
-  77: "經典老電影海報,泛黃膠片人像",
-  78: "懷舊街景海報,雨夜舊招牌",
-  79: "復古汽水廣告,做舊紙紋插畫",
-  80: "懷舊故事書封面,老照片相機",
-  81: "西部酒吧 Live 海報,沙漠仙人掌牛仔",
-  82: "西部通緝令海報,牛皮紙 WANTED 帽影",
-  83: "賞金獵人懸賞海報,懸賞金額舊紙",
-  84: "重機俱樂部海報,重機剪影公路",
-  85: "夜之城市霓虹招牌,雨夜街道倒影",
-  86: "台灣夜市菜單看板,品項與價格",
-  87: "街區散步筆記圖卡,便利貼膠帶勾選",
-  88: "限時促銷電商廣告,紅底閃電五折起",
-  89: "文化活動報頭視覺,水墨山水邊飾",
-  90: "書法文化展海報,墨韻宣紙",
-  91: "山水文化品牌封面,淡墨山水",
-  92: "禪意茶品牌視覺,石苔竹影留白",
-  93: "中式文創節慶圖卡,墨綠底仙鶴紋",
-  94: "國風牌匾視覺,木構屋簷金字匾額",
-  95: "國潮貼文視覺,石印紋黑金",
-  96: "東方節慶海報,紅日佛塔浪紋",
-  97: "暗黑影集風海報,月夜古堡蝙蝠",
-  98: "中世紀奇幻節活動海報,羊皮紙紋章",
-  99: "金屬樂團演出海報,黑底混沌尖刺",
-  100: "哥特風品牌封面,黑底玫瑰藤蔓"
-};
-
+// 資料在 fonts.json(scenes 為空的條目,是來源圖卡最底行被裁切、無法辨識,不臆測補寫)
 const promptOf = name => `[主題與內容描述]\n標題使用「${name}」\n[情緒、版型、使用場景描述]`;
-const promptOfApp = (n, name) => {
-  const scene = APPS[n] || "";
-  const i = scene.indexOf(",");
-  const kind = i > 0 ? scene.slice(0, i) : scene;
-  const detail = i > 0 ? scene.slice(i + 1) : "";
+const promptOfApp = (app, name) => {
+  const i = app.indexOf(",");
+  const kind = i > 0 ? app.slice(0, i) : app;
+  const detail = i > 0 ? app.slice(i + 1) : "";
   return `設計一張${kind}:[你的主題與內容]\n標題文字「[你的標題]」,標題使用「${name}」${detail ? `\n畫面:${detail}` : ""}`;
 };
 
@@ -466,107 +248,121 @@ function flash(btn, doneText){
   btn._t = setTimeout(()=>{ btn.classList.remove("done"); btn.innerHTML = orig; }, 1400);
 }
 
-// build sections
-const main = document.getElementById("main");
-CATS.forEach((c, i) => {
-  const lo = i*10+1, hi = i*10+10;
-  const sec = document.createElement("section");
-  sec.className = "cat"; sec.id = "cat-" + c.no; sec.dataset.cat = i;
-  sec.innerHTML = `
-    <div class="cat-head">
-      <span class="cat-no">${c.no}</span>
-      <h2>${c.title}</h2>
-      <span class="cat-range">${String(lo).padStart(2,"0")}–${hi}</span>
-    </div>
-    <details class="cardimg">
-      <summary>看這一類的成品應用圖卡</summary>
-      <img loading="lazy" src="${c.img}" alt="${c.title} 字體圖卡(${lo}–${hi}),含每種字體的成品應用示例">
-    </details>
-    <div class="grid"></div>`;
-  const grid = sec.querySelector(".grid");
-  FONTS.slice(i*10, i*10+10).forEach(([n, name, tag, scenes]) => {
-    const el = document.createElement("div");
-    el.className = "entry";
-    el.dataset.text = [name, tag, ...scenes, APPS[n] || ""].join(" ").toLowerCase();
-    const sceneKind = (APPS[n] || "").split(",")[0];
-    el.innerHTML = `
-      <header class="entry-head">
-        <span class="entry-no">${String(n).padStart(2,"0")}</span>
-        <p class="entry-name">${name}</p>
-        <span class="entry-tag">${tag}</span>
-      </header>
-      <figure class="unit">
-        <img loading="lazy" src="samples/${String(n).padStart(3,"0")}-${name}.webp" alt="「${name}」純字效果">
-        <div class="unit-bar">
-          <span class="unit-lab">純字</span>
-          <button class="copybtn" type="button" aria-label="複製「${name}」字體提示詞">複製提示詞</button>
-        </div>
-      </figure>
-      <figure class="unit">
-        <img loading="lazy" src="samples/apps/${String(n).padStart(3,"0")}-${name}.webp" alt="「${name}」應用於${sceneKind}的效果">
-        <div class="unit-bar">
-          <span class="unit-lab">應用<span class="sub">・${sceneKind}</span></span>
-          <button class="copybtn" type="button" aria-label="複製「${name}」應用提示詞">複製提示詞</button>
-        </div>
-      </figure>
-      <p class="fits"><b>適合</b>:${scenes.length ? scenes.join("・") : "見分類圖卡"}</p>`;
-    const [bFont, bApp] = el.querySelectorAll(".copybtn");
-    bFont.addEventListener("click", ev => {
-      copyText(promptOf(name));
-      flash(ev.currentTarget, "已複製");
-    });
-    bApp.addEventListener("click", ev => {
-      copyText(promptOfApp(n, name));
-      flash(ev.currentTarget, "已複製");
-    });
-    grid.appendChild(el);
-  });
-  main.appendChild(sec);
-});
+async function init(){
+  const data = await (await fetch("fonts.json")).json();
+  const CATS = data.groups;
+  const byGroup = CATS.map(() => []);
+  data.fonts.forEach(f => byGroup[f.group].push(f));
 
-// chips
-const chipsBox = document.getElementById("chips");
-let activeCat = -1;
-const allChip = document.createElement("button");
-allChip.className = "chip on"; allChip.type = "button"; allChip.textContent = "全部";
-chipsBox.appendChild(allChip);
-CATS.forEach((c, i) => {
-  const b = document.createElement("button");
-  b.className = "chip"; b.type = "button";
-  b.innerHTML = `<span class="n">${c.no}</span>${c.title}`;
-  b.addEventListener("click", () => { setCat(activeCat === i ? -1 : i); });
-  chipsBox.appendChild(b);
-});
-allChip.addEventListener("click", () => setCat(-1));
-function setCat(i){
-  activeCat = i;
-  [...chipsBox.children].forEach((b, k) => b.classList.toggle("on", k === i+1));
+  // build sections
+  const main = document.getElementById("main");
+  CATS.forEach((c, i) => {
+    const list = byGroup[i];
+    if(!list.length) return;
+    const sec = document.createElement("section");
+    sec.className = "cat"; sec.id = "cat-" + c.no; sec.dataset.cat = i;
+    sec.innerHTML = `
+      <div class="cat-head">
+        <span class="cat-no">${c.no}</span>
+        <h2>${c.title}</h2>
+        <span class="cat-range">${list.length} 種</span>
+      </div>
+      ${c.card ? `<details class="cardimg">
+        <summary>看這一類的成品應用圖卡</summary>
+        <img loading="lazy" src="${c.card}" alt="${c.title} 字體圖卡,含每種字體的成品應用示例">
+      </details>` : ""}
+      <div class="grid"></div>`;
+    const grid = sec.querySelector(".grid");
+    list.forEach(f => {
+      const {n, name, tag, scenes, app} = f;
+      const el = document.createElement("div");
+      el.className = "entry";
+      el.dataset.text = [name, tag, ...scenes, app].join(" ").toLowerCase();
+      const sceneKind = app.split(",")[0];
+      const nnn = String(n).padStart(3, "0");
+      el.innerHTML = `
+        <header class="entry-head">
+          <span class="entry-no">${String(n).padStart(2,"0")}</span>
+          <p class="entry-name">${name}</p>
+          ${f.source !== "aji" ? `<span class="entry-badge">擴充</span>` : ""}
+          <span class="entry-tag">${tag}</span>
+        </header>
+        <figure class="unit">
+          <img loading="lazy" src="samples/${nnn}-${name}.webp" alt="「${name}」純字效果">
+          <div class="unit-bar">
+            <span class="unit-lab">純字</span>
+            <button class="copybtn" type="button" aria-label="複製「${name}」字體提示詞">複製提示詞</button>
+          </div>
+        </figure>
+        <figure class="unit">
+          <img loading="lazy" src="samples/apps/${nnn}-${name}.webp" alt="「${name}」應用於${sceneKind}的效果">
+          <div class="unit-bar">
+            <span class="unit-lab">應用<span class="sub">・${sceneKind}</span></span>
+            <button class="copybtn" type="button" aria-label="複製「${name}」應用提示詞">複製提示詞</button>
+          </div>
+        </figure>
+        <p class="fits"><b>適合</b>:${scenes.length ? scenes.join("・") : "見分類圖卡"}</p>`;
+      const [bFont, bApp] = el.querySelectorAll(".copybtn");
+      bFont.addEventListener("click", ev => {
+        copyText(promptOf(name));
+        flash(ev.currentTarget, "已複製");
+      });
+      bApp.addEventListener("click", ev => {
+        copyText(promptOfApp(app, name));
+        flash(ev.currentTarget, "已複製");
+      });
+      grid.appendChild(el);
+    });
+    main.appendChild(sec);
+  });
+
+  // chips
+  const chipsBox = document.getElementById("chips");
+  let activeCat = -1;
+  const allChip = document.createElement("button");
+  allChip.className = "chip on"; allChip.type = "button"; allChip.textContent = "全部";
+  chipsBox.appendChild(allChip);
+  CATS.forEach((c, i) => {
+    if(!byGroup[i].length) return;
+    const b = document.createElement("button");
+    b.className = "chip"; b.type = "button"; b.dataset.cat = i;
+    b.innerHTML = `<span class="n">${c.no}</span>${c.title}`;
+    b.addEventListener("click", () => { setCat(activeCat === i ? -1 : i); });
+    chipsBox.appendChild(b);
+  });
+  allChip.addEventListener("click", () => setCat(-1));
+  function setCat(i){
+    activeCat = i;
+    [...chipsBox.children].forEach(b => b.classList.toggle("on", (i < 0 && b === allChip) || +b.dataset.cat === i));
+    apply();
+    if(i >= 0) document.getElementById("cat-" + CATS[i].no).scrollIntoView();
+  }
+
+  // search
+  const q = document.getElementById("q");
+  const count = document.getElementById("count");
+  const empty = document.getElementById("empty");
+  q.addEventListener("input", apply);
+  function apply(){
+    const kw = q.value.trim().toLowerCase();
+    let shown = 0;
+    document.querySelectorAll("section.cat").forEach(sec => {
+      const inCat = activeCat < 0 || +sec.dataset.cat === activeCat;
+      let secShown = 0;
+      sec.querySelectorAll(".entry").forEach(el => {
+        const hit = inCat && (!kw || el.dataset.text.includes(kw));
+        el.classList.toggle("hide", !hit);
+        if(hit) secShown++;
+      });
+      sec.style.display = secShown ? "" : "none";
+      shown += secShown;
+    });
+    count.textContent = shown + " 種";
+    empty.style.display = shown ? "none" : "block";
+  }
   apply();
-  if(i >= 0) document.getElementById("cat-" + CATS[i].no).scrollIntoView();
 }
-
-// search
-const q = document.getElementById("q");
-const count = document.getElementById("count");
-const empty = document.getElementById("empty");
-q.addEventListener("input", apply);
-function apply(){
-  const kw = q.value.trim().toLowerCase();
-  let shown = 0;
-  document.querySelectorAll("section.cat").forEach(sec => {
-    const inCat = activeCat < 0 || +sec.dataset.cat === activeCat;
-    let secShown = 0;
-    sec.querySelectorAll(".entry").forEach(el => {
-      const hit = inCat && (!kw || el.dataset.text.includes(kw));
-      el.classList.toggle("hide", !hit);
-      if(hit) secShown++;
-    });
-    sec.style.display = secShown ? "" : "none";
-    shown += secShown;
-  });
-  count.textContent = shown + " 種";
-  empty.style.display = shown ? "none" : "block";
-}
+init();
 
 // formula copy
 document.getElementById("copyFormula").addEventListener("click", ev => {
