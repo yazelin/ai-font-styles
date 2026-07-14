@@ -396,6 +396,7 @@ async function init(){
   apply();
 }
 init();
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
 
 // formula copy
 document.getElementById("copyFormula").addEventListener("click", ev => {
