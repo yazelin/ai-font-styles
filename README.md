@@ -2,7 +2,7 @@
 
 **線上版(可搜尋+一鍵複製提示詞):https://yazelin.github.io/ai-font-styles/**
 
-100 種 AI 生圖用的「字體風格名稱」,分 10 張圖卡,每張 10 種,附實際應用成品對照。
+從 100 種 AI 生圖用的「字體風格名稱」起家,每天自動擴充一種,分 10 類,附實際應用成品對照。
 
 這些不是真實字型檔,是拿來寫進提示詞的**風格描述詞**。做圖卡、封面、海報時,直接指定字體風格,比說「幫我換一個好看的字」快很多,也比較不會得到方向完全不對的結果。
 
@@ -37,6 +37,17 @@
 每 10 種合排一張的原稿在 `samples/sheets/`(`sheet-*` 純字、`app-sheet-*` 應用),完整生成 prompt 在 `tools/gen-sheets.sh` 與 `tools/gen-app-sheets.sh`,錯字格單獨重生的修正 prompt 在 `tools/gen-app-fixes.sh`,裁切/貼回腳本也都在 `tools/`。
 
 線上版每個字體條目並列顯示「字/應用」兩張效果圖,並提供兩顆複製鈕:字體提示詞(純字公式)與應用提示詞(含該格實測用的場景描述)。
+
+## 每日自動擴充
+
+100 種之後,這個庫每天自動長出一種新字體(GitHub Actions,台北時間 10:30):
+
+1. 從 `queue.json` 候選佇列取出第一筆(名稱、風格描述、應用場景都預先寫好,佇列可隨時手動增刪排序)
+2. 打自架的 [codex-image-service](https://github.com/yazelin/codex-image-service) 生成純字圖與應用圖
+3. Gemini 視覺驗字:繁體字形、無錯漏字、風格符合名稱——單圖最多重生 3 次,全過才上線
+4. 寫入 `fonts.json` 並 commit,Pages 自動更新
+
+擴充字體在站上標「擴充」徽章,與阿吉原整理的 100 種明確區分;pipeline 程式在 `tools/daily_font.py`。
 
 ## 字體總覽
 
