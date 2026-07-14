@@ -8,6 +8,17 @@ SCRATCH = os.path.dirname(os.path.abspath(__file__))
 FONT = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 30)
 WIN = 120
 
+# 實測灰色格線位置(舊的空白帶偵測會抓到文字下緣,整體偏移)
+PURE_ROWS = {
+    1: [345, 668, 978, 1264], 2: [349, 686, 1021, 1278],
+    3: [330, 647, 944, 1227], 4: [341, 657, 968, 1243],
+    5: [363, 696, 1012, 1277], 6: [355, 676, 995, 1256],
+    7: [346, 672, 1002, 1279], 8: [343, 669, 976, 1260],
+    9: [347, 689, 998, 1274], 10: [334, 656, 977, 1266],
+}
+PURE_COL = {1: 511, 2: 510, 3: 511, 4: 507, 5: 511, 6: 510, 7: 511, 8: 511, 9: 511, 10: 510}
+
+
 def boundary(mean, soft, dark, ideal, lo, hi):
     lo, hi = max(lo, ideal - WIN), min(hi, ideal + WIN)
     def runs_center(idx):
@@ -42,13 +53,13 @@ def boundary(mean, soft, dark, ideal, lo, hi):
         return int(sum(best) / len(best))
     return ideal
 
-def grid(sheet):
+def grid(sheet, sheet_no):
     g = np.asarray(sheet.convert("L"), dtype=float)
     h, w = g.shape
     rmean = g.mean(axis=1); rsoft = (g < 246).mean(axis=1); rdark = (g < 130).mean(axis=1)
     cmean = g.mean(axis=0); csoft = (g < 246).mean(axis=0); cdark = (g < 130).mean(axis=0)
-    ys = [0] + [boundary(rmean, rsoft, rdark, round(h*i/5), 30, h-30) for i in range(1, 5)] + [h]
-    xs = [0, boundary(cmean, csoft, cdark, w // 2, 30, w-30), w]
+    ys = [0] + PURE_ROWS[sheet_no] + [h]
+    xs = [0, PURE_COL[sheet_no], w]
     return xs, ys
 
 for f in sorted(glob.glob(f"{SCRATCH}/fix-*.png")):
@@ -58,7 +69,7 @@ for f in sorted(glob.glob(f"{SCRATCH}/fix-*.png")):
     col, row = i % 2, i // 2
     sheet_path = f"{SCRATCH}/sheet-{s:02d}.png"
     sheet = Image.open(sheet_path).convert("RGB")
-    xs, ys = grid(sheet)  # 每次重算:貼白格不影響格線偵測
+    xs, ys = grid(sheet, s)  # 每次重算:貼白格不影響格線偵測
     x0, x1, y0, y1 = xs[col], xs[col+1], ys[row], ys[row+1]
 
     # 整格塗白(留格線 3px),修正圖等比縮放置中
