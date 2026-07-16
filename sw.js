@@ -1,7 +1,7 @@
 // 圖片本機快取:samples/ 與 cards/ 載過一次就存 CacheStorage,回訪不再重載。
 // 注意:若「原地覆蓋」既有圖片(同檔名換內容),必須 bump 下面的 CACHE 版本,
 // 否則舊訪客永遠看快取。每日新增字體是新檔名,不用動版本。
-const CACHE = "afs-v3";
+const CACHE = "afs-v4";
 const IMMUTABLE = /\/(samples|cards)\//;
 
 self.addEventListener("install", () => self.skipWaiting());
