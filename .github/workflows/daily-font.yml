@@ -11,6 +11,7 @@ concurrency:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   add-font:
@@ -41,3 +42,16 @@ jobs:
           git add fonts.json queue.json samples/
           git commit -m "每日擴充:#${{ steps.gen.outputs.font_no }} ${{ steps.gen.outputs.font_name }}"
           git push
+
+      - name: Low queue notice
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          count=$(python -c "import json; print(len(json.load(open('queue.json'))['queue']))")
+          echo "queue 剩 $count 筆"
+          if [ "$count" -lt 14 ] && [ -z "$(gh issue list --state open --search '補候選 in:title' --json number --jq '.[0].number')" ]; then
+            gh issue create \
+              --title "候選佇列剩 $count 筆,該補候選了" \
+              --body "queue.json 低於 14 筆水位。批次補約 20 個新候選(跟 fonts.json 全表+queue 現有項查重、看分類缺口),走 PR 人工掃過再合。處理完關掉此 issue。"
+          fi
