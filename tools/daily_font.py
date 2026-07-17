@@ -77,7 +77,15 @@ def qa(png: bytes, name: str, expect: str) -> tuple[bool, list]:
         f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent",
         data=body, headers={"Content-Type": "application/json", "x-goog-api-key": GEMINI_KEY})
     r = json.loads(urllib.request.urlopen(req, timeout=120).read())
-    verdict = json.loads(r["candidates"][0]["content"]["parts"][0]["text"])
+    text = r["candidates"][0]["content"]["parts"][0]["text"].strip()
+    if text.startswith("```"):  # 偶爾 mime_type 被無視,夾 markdown fence
+        text = text.strip("`").removeprefix("json").strip()
+    try:
+        verdict = json.loads(text)
+    except json.JSONDecodeError:
+        # ponytail: Gemini 偶爾吐壞 JSON,別炸掉整天——當成驗字沒過讓外層重試
+        print(f"  QA JSON 解析失敗,視為未過:{text[:200]!r}", flush=True)
+        return False, ["QA 回傳非合法 JSON"]
     return bool(verdict.get("pass")), verdict.get("issues", [])
 
 
