@@ -109,6 +109,10 @@ def save_webp(png: bytes, path: str):
 
 def main():
     data = json.load(open("fonts.json"))
+    today = datetime.date.today().isoformat()
+    if any(f.get("added") == today for f in data["fonts"]):
+        print(f"今日({today})已擴充,跳過。")  # 讓多時段補跑冪等
+        return
     qdata = json.load(open("queue.json"))
     if not qdata["queue"]:
         print("佇列已空,無事可做。請補充 queue.json。")

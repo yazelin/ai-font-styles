@@ -2,7 +2,9 @@ name: Daily font expansion
 
 on:
   schedule:
-    - cron: "30 2 * * *"   # 10:30 台北時間
+    - cron: "30 2 * * *"   # 台北 10:30 主跑
+    - cron: "30 5 * * *"   # 台北 13:30 補跑(主跑被 GitHub 跳過時遞補)
+    - cron: "30 8 * * *"   # 台北 16:30 補跑(當日已成功則腳本自動 skip)
   workflow_dispatch:
 
 concurrency:
