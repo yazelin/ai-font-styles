@@ -227,12 +227,15 @@ footer .src a:hover{border-bottom-color:var(--seal)}
 
 <script>
 // 資料在 fonts.json(scenes 為空的條目,是來源圖卡最底行被裁切、無法辨識,不臆測補寫)
-const promptOf = name => `[主題與內容描述]\n標題使用「${name}」\n[情緒、版型、使用場景描述]`;
-const promptOfApp = (app, name) => {
+const promptOf = (name, desc) => desc
+  ? `[主題與內容描述]\n標題使用「${name}」,風格:${desc}\n[情緒、版型、使用場景描述]`
+  : `[主題與內容描述]\n標題使用「${name}」\n[情緒、版型、使用場景描述]`;
+const promptOfApp = (app, name, desc) => {
   const i = app.indexOf(",");
   const kind = i > 0 ? app.slice(0, i) : app;
   const detail = i > 0 ? app.slice(i + 1) : "";
-  return `設計一張${kind}:[你的主題與內容]\n標題文字「[你的標題]」,標題使用「${name}」${detail ? `\n畫面:${detail}` : ""}`;
+  const styleNote = desc ? `${name}(${desc})` : name;
+  return `設計一張${kind}:[你的主題與內容]\n標題文字「[你的標題]」,標題使用「${styleNote}」${detail ? `\n畫面:${detail}` : ""}`;
 };
 
 async function copyText(text){
@@ -296,8 +299,8 @@ async function init(){
       </figure>
       <p class="fits"><b>適合</b>:${scenes.length ? scenes.join("・") : "見分類圖卡"}</p>`;
     const [bFont, bApp] = el.querySelectorAll(".copybtn");
-    bFont.addEventListener("click", ev => { copyText(promptOf(name)); flash(ev.currentTarget, "已複製"); });
-    bApp.addEventListener("click", ev => { copyText(promptOfApp(app, name)); flash(ev.currentTarget, "已複製"); });
+    bFont.addEventListener("click", ev => { copyText(promptOf(name, f.desc)); flash(ev.currentTarget, "已複製"); });
+    bApp.addEventListener("click", ev => { copyText(promptOfApp(app, name, f.desc)); flash(ev.currentTarget, "已複製"); });
     return el;
   }
 
