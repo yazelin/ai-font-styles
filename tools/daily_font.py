@@ -37,7 +37,7 @@ APP_TMPL = (
     "主標題文字的筆畫本身,必須是「{desc}」所描述的實際形態或技法構成"
     "(例如線條走向、堆疊方式、鑲嵌結構、書寫筆觸),不能只是在制式字體外觀上貼一層材質貼皮。"
     "所有主標題中文字必須是筆畫正確的繁體中文字形,不能出現錯字、多字、漏字或簡體字。 "
-    "主標題:「{name}」(共{count}個字,一字不多一字不少),{desc}。場景:{scene}。"
+    "主標題:「{headline}」(共{count}個字,一字不多一字不少),字體風格為「{desc}」。場景:{scene}。"
 )
 
 
@@ -127,6 +127,9 @@ def main():
     item = qdata["queue"][0]
     n = max(f["n"] for f in data["fonts"]) + 1
     name, desc = item["name"], item["desc"]
+    # ponytail: 舊佇列項目沒有 headline 欄位,退回用字體名稱(自我指涉但不會壞掉),
+    # 補貨時應該一併寫 headline,別靠這個退路
+    headline = item.get("headline") or name
     nnn = f"{n:03d}"
     print(f"本日字體 #{n}:{name}", flush=True)
 
@@ -136,8 +139,8 @@ def main():
         name, f"以「{desc}」的風格呈現,白色背景")
     print("[2/2] 應用圖", flush=True)
     app = gen_verified(
-        APP_TMPL.format(name=name, count=len(name), desc=desc, scene=item["app"]),
-        name, f"套用在設計場景「{item['app']}」中,風格為「{desc}」")
+        APP_TMPL.format(headline=headline, count=len(headline), desc=desc, scene=item["app"]),
+        headline, f"套用在設計場景「{item['app']}」中,風格為「{desc}」")
 
     save_webp(pure, f"samples/{nnn}-{name}.webp")
     save_webp(app, f"samples/apps/{nnn}-{name}.webp")
@@ -145,7 +148,7 @@ def main():
     data["fonts"].append({
         "n": n, "name": name, "tag": item["tag"], "scenes": item["scenes"],
         "app": item["app"], "group": item["group"], "source": "expansion",
-        "desc": desc, "added": datetime.date.today().isoformat(),
+        "desc": desc, "headline": headline, "added": datetime.date.today().isoformat(),
     })
     json.dump(data, open("fonts.json", "w"), ensure_ascii=False, indent=1)
     qdata["queue"] = qdata["queue"][1:]
