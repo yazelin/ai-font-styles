@@ -1,7 +1,7 @@
-// 圖片本機快取:samples/ 與 cards/ 載過一次就存 CacheStorage,回訪不再重載。
-// 注意:若「原地覆蓋」既有圖片(同檔名換內容),必須 bump 下面的 CACHE 版本,
-// 否則舊訪客永遠看快取。每日新增字體是新檔名,不用動版本。
-const CACHE = "afs-v8";
+// 圖片本機快取:samples/ 與 cards/ 走 stale-while-revalidate——先回快取(快),
+// 同時背景打一次網路確認 repo 上的檔案有沒有更新,有更新就存回快取,下次造訪
+// 自動拿到新的。原地覆蓋既有圖片(同檔名換內容)不用再手動 bump 版本。
+const CACHE = "afs-v9";
 const IMMUTABLE = /\/(samples|cards)\//;
 
 self.addEventListener("install", () => self.skipWaiting());
@@ -16,13 +16,15 @@ self.addEventListener("fetch", e => {
   if (e.request.method !== "GET" || url.origin !== location.origin) return;
 
   if (IMMUTABLE.test(url.pathname)) {
-    // 圖片:cache-first,命中即回、不打網路
-    e.respondWith(caches.open(CACHE).then(c =>
-      c.match(e.request).then(hit => hit || fetch(e.request).then(res => {
+    // 圖片:stale-while-revalidate——命中先回快取,背景照樣打網路更新快取
+    e.respondWith(caches.open(CACHE).then(async c => {
+      const hit = await c.match(e.request);
+      const network = fetch(e.request).then(res => {
         if (res.ok) c.put(e.request, res.clone());
         return res;
-      }))
-    ));
+      }).catch(() => hit);
+      return hit || network;
+    }));
   } else {
     // index.html / fonts.json:network-first(每日更新要進得來),離線退快取
     e.respondWith(
