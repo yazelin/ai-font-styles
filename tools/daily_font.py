@@ -100,6 +100,10 @@ def qa(png: bytes, name: str, expect: str) -> tuple[bool, list]:
     return bool(verdict.get("pass")), verdict.get("issues", [])
 
 
+class VerifyFailed(RuntimeError):
+    """驗字連續未過(圖生出來了但不合格)。跟生圖服務掛掉區分開:前者換一筆繼續,後者要炸給人看。"""
+
+
 def gen_verified(prompt: str, name: str, expect: str) -> bytes:
     last_issues = []
     for attempt in range(1, MAX_ATTEMPTS + 1):
@@ -111,7 +115,13 @@ def gen_verified(prompt: str, name: str, expect: str) -> bytes:
             return png
         last_issues = issues
         print(f"  驗字未過:{issues}", flush=True)
-    raise RuntimeError(f"連續 {MAX_ATTEMPTS} 次驗字未過:{last_issues}")
+    raise VerifyFailed(f"連續 {MAX_ATTEMPTS} 次驗字未過:{last_issues}")
+
+
+def out(line: str):
+    """寫 workflow step output;有 commit_msg 就代表這輪有東西要 commit。"""
+    with open(os.environ.get("GITHUB_OUTPUT", "/dev/null"), "a") as f:
+        f.write(line + "\n")
 
 
 def save_webp(png: bytes, path: str):
@@ -137,14 +147,26 @@ def main():
     nnn = f"{n:03d}"
     print(f"本日字體 #{n}:{name}", flush=True)
 
-    print("[1/2] 純字圖", flush=True)
-    pure = gen_verified(
-        PURE_TMPL.format(name=name, count=len(name), desc=desc),
-        name, f"以「{desc}」的風格呈現,白色背景")
-    print("[2/2] 應用圖", flush=True)
-    app = gen_verified(
-        APP_TMPL.format(headline=headline, count=len(headline), desc=desc, scene=item["app"]),
-        headline, f"套用在設計場景「{item['app']}」中,風格為「{desc}」")
+    try:
+        print("[1/2] 純字圖", flush=True)
+        # 背景要求要跟 PURE_TMPL 同一套規則:硬寫「白色背景」會把天生深色的風格
+        # (極光、夜光、黑板)全部判死,佇列就卡在那一筆再也不動
+        pure = gen_verified(
+            PURE_TMPL.format(name=name, count=len(name), desc=desc),
+            name, f"以「{desc}」的風格呈現,背景是大面積單一色調的純底"
+                  "(預設白底;風格天生需要深色或特定色調時用該色調也算合格),不含道具或情境場景")
+        print("[2/2] 應用圖", flush=True)
+        app = gen_verified(
+            APP_TMPL.format(headline=headline, count=len(headline), desc=desc, scene=item["app"]),
+            headline, f"套用在設計場景「{item['app']}」中,風格為「{desc}」")
+    except VerifyFailed as e:
+        # 這一筆生不出合格圖就挪到佇列尾端,換下一筆繼續。不這樣做的話單筆卡死=整條產線停擺
+        # (2026-07-28 起 #115 極光流光字卡了三天,每天三個時段全掛)
+        qdata["queue"] = qdata["queue"][1:] + [item]
+        json.dump(qdata, open("queue.json", "w"), ensure_ascii=False, indent=1)
+        print(f"跳過「{name}」:{e}(已挪到佇列尾端,下個時段換下一筆)", flush=True)
+        out(f"commit_msg=chore: 「{name}」驗字未過,挪到佇列尾端")
+        return
 
     save_webp(pure, f"samples/{nnn}-{name}.webp")
     save_webp(app, f"samples/apps/{nnn}-{name}.webp")
@@ -158,9 +180,7 @@ def main():
     qdata["queue"] = qdata["queue"][1:]
     json.dump(qdata, open("queue.json", "w"), ensure_ascii=False, indent=1)
     print(f"完成:#{n} {name}(佇列剩 {len(qdata['queue'])} 筆)", flush=True)
-    # 給 workflow 用的 commit 訊息素材
-    with open(os.environ.get("GITHUB_OUTPUT", "/dev/null"), "a") as f:
-        f.write(f"font_no={n}\nfont_name={name}\nadded=1\n")
+    out(f"commit_msg=每日擴充:#{n} {name}")
 
 
 if __name__ == "__main__":
