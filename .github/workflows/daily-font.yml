@@ -37,12 +37,14 @@ jobs:
         run: python tools/daily_font.py
 
       - name: Commit and push
-        if: steps.gen.outputs.added == '1'
+        if: steps.gen.outputs.commit_msg != ''
+        env:
+          MSG: ${{ steps.gen.outputs.commit_msg }}   # 走 env 不內插進 shell,字體名來自 queue.json
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add fonts.json queue.json samples/
-          git commit -m "每日擴充:#${{ steps.gen.outputs.font_no }} ${{ steps.gen.outputs.font_name }}"
+          git commit -m "$MSG"
           git push
 
       - name: Low queue notice
