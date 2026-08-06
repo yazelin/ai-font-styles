@@ -18,9 +18,14 @@
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="zh_TW">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&display=swap" rel="stylesheet">
+<style>
+/* 自架字型:Google Fonts CDN 跨域,SW 快取不到 → 離線一定壞。
+   900 是 h1/分類標題/entry-name 用的,而 entry-name 來自每天長大的 fonts.json,
+   所以切到 BIG5 常用字 5,401;600 只有靜態小標,切 repo 出現過的字就夠。
+   重切:pwa-skill/tools/selfhost-font.py */
+@font-face{font-family:"Noto Serif TC";font-style:normal;font-weight:600;font-display:swap;src:url("assets/fonts/noto-serif-tc-600.woff2") format("woff2")}
+@font-face{font-family:"Noto Serif TC";font-style:normal;font-weight:900;font-display:swap;src:url("assets/fonts/noto-serif-tc-900.woff2") format("woff2")}
+</style>
 <style>
 :root{
   --paper:#fbfaf7;
@@ -170,6 +175,10 @@ footer .src a:hover{border-bottom-color:var(--seal)}
 .me a:hover{color:var(--seal)}
 .me svg{width:18px;height:18px;fill:currentColor}
 </style>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#c0341d">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 </head>
 <body>
 
