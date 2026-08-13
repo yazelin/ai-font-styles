@@ -186,12 +186,14 @@ footer .src a:hover{border-bottom-color:var(--seal)}
   <div class="wrap">
     <p class="hero-kicker">AI 生圖提示詞・字體樣本簿</p>
     <h1>上百種字體風格<span class="num">,</span>每天多一種<span class="num">,</span>換一種感覺就不一樣</h1>
-    <p class="hero-sub">這裡的不是字型檔,是寫進提示詞的「字體風格名稱」。做圖卡、封面、海報時直接指定風格,比說「幫我換一個好看的字」快很多。每種風格附一張我們實際用提示詞生成的效果圖;旁邊蓋一下印章,複製到的就是生出那張圖的同一段提示詞,把方括號換成你自己的內容就能用。同一組字我們最多重生三次、挑通過檢查的那張,你第一次生出來不如預期是正常的,再跑一次。</p>
+    <p class="hero-sub">這裡的不是字型檔,是寫進提示詞的「字體風格描述詞」。做圖卡、封面、海報時直接指定風格,比說「幫我換一個好看的字」快很多。每種風格附一張我們實際用提示詞生成的效果圖;旁邊蓋一下印章,複製到的就是生出那張圖的同一段提示詞,把方括號換成你自己的內容就能用。同一組字我們最多重生三次、挑通過檢查的那張,你第一次生出來不如預期是正常的,再跑一次。</p>
     <div class="formula">
       <p class="formula-label">提 示 詞 公 式</p>
-      <pre>[主題與內容描述]
-標題使用「<b>字體風格名稱</b>」,內文使用「<b>字體風格名稱</b>」
-[情緒、版型、使用場景描述]</pre>
+      <pre>[主題與場景描述]
+主標題:「<b>你的標題</b>」(共 <b>N</b> 個字,一字不多一字不少)
+字體風格:<b>風格描述</b>(不只是名稱,要描述材質與做法)
+主標題的筆畫本身必須是這個風格描述的實際形態或技法構成,不能只在制式字體外觀上貼一層材質貼皮
+[版型、情緒、輔助視覺與小字]</pre>
       <button class="copy-formula" id="copyFormula" type="button">複製公式範本</button>
     </div>
   </div>
@@ -423,7 +425,10 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
 
 // formula copy
 document.getElementById("copyFormula").addEventListener("click", ev => {
-  copyText("[主題與內容描述]\n標題使用「____」,內文使用「____」\n[情緒、版型、使用場景描述]");
+  copyText("[主題與場景描述]\n主標題:「____」(共 N 個字,一字不多一字不少)\n"
+    + "字體風格:____(不只是名稱,要描述材質與做法)\n"
+    + "主標題的筆畫本身必須是這個風格描述的實際形態或技法構成,不能只在制式字體外觀上貼一層材質貼皮\n"
+    + "[版型、情緒、輔助視覺與小字]");
   flash(ev.currentTarget, "已複製");
 });
 </script>
