@@ -22,27 +22,9 @@ GEMINI_KEY = os.environ["GEMINI_API_KEY"]
 GEMINI_MODEL = "gemini-flash-latest"
 MAX_ATTEMPTS = 3
 
-PURE_TMPL = (
-    "橫式構圖,畫面中只有這幾個大字置中呈現,無其他裝飾文字。"
-    "背景只需要解決色調衝突,不要畫成完整情境:若風格材質天生需要深色/特定色調背景才不會反轉配色"
-    "(如黑板需要深色、液面需要對應底色),用大面積單一色調呈現即可,不能加道具、環境或敘事場景"
-    "(那是應用場景圖的工作);若風格不涉及背景色調衝突(如金屬、紙材、線條等),維持乾淨白色背景。"
-    "文字的筆畫本身,必須是「{desc}」所描述的實際形態或技法構成"
-    "(例如線條走向、堆疊方式、鑲嵌結構、書寫筆觸),不能只是在制式字體外觀上貼一層材質貼皮。"
-    "所有中文字必須是筆畫正確的繁體中文字形,不能出現錯字、多字、漏字或簡體字。 "
-    "文字:「{name}」(共{count}個字,一字不多一字不少)。字體風格:{desc}。"
-)
-APP_TMPL = (
-    "橫式構圖的迷你設計成品,主標題文字大而清晰。"
-    "畫面還要有至少一個貼合場景的輔助視覺(例如真實產品、實際場景照片,不是通用裝飾圖示),"
-    "以及一兩行貼合場景、真的會出現在這種設計裡的小字(副標、行動呼籲、日期或品牌名之類)。"
-    "整體構圖不要做成置中對稱、四角塞滿波浪或圖示裝飾的簡報/資訊圖卡樣式,"
-    "要自然不對稱、像真的被拍下來或印出來的成品。"
-    "主標題文字的筆畫本身,必須是「{desc}」所描述的實際形態或技法構成"
-    "(例如線條走向、堆疊方式、鑲嵌結構、書寫筆觸),不能只是在制式字體外觀上貼一層材質貼皮。"
-    "所有主標題中文字必須是筆畫正確的繁體中文字形,不能出現錯字、多字、漏字或簡體字。 "
-    "主標題:「{headline}」(共{count}個字,一字不多一字不少),字體風格為「{desc}」。場景:{scene}。"
-)
+# 模板放 fonts.json,index.html 複製提示詞時吃同一份。
+# 曾經兩邊各寫一份,網頁那份少了「筆畫本身要是該技法構成」「字數鎖」「別做成簡報卡」,
+# 使用者照抄生不出樣本圖的效果。要改提示詞就改 fonts.json,別搬回來這裡。
 
 
 def gen_image(prompt: str) -> bytes:
@@ -152,12 +134,13 @@ def main():
         # 背景要求要跟 PURE_TMPL 同一套規則:硬寫「白色背景」會把天生深色的風格
         # (極光、夜光、黑板)全部判死,佇列就卡在那一筆再也不動
         pure = gen_verified(
-            PURE_TMPL.format(name=name, count=len(name), desc=desc),
+            data["templates"]["pure"].format(name=name, count=len(name), desc=desc),
             name, f"以「{desc}」的風格呈現,背景是大面積單一色調的純底"
                   "(預設白底;風格天生需要深色或特定色調時用該色調也算合格),不含道具或情境場景")
         print("[2/2] 應用圖", flush=True)
         app = gen_verified(
-            APP_TMPL.format(headline=headline, count=len(headline), desc=desc, scene=item["app"]),
+            data["templates"]["app"].format(
+                headline=headline, count=len(headline), desc=desc, scene=item["app"]),
             headline, f"套用在設計場景「{item['app']}」中,風格為「{desc}」")
     except VerifyFailed as e:
         # 這一筆生不出合格圖就挪到佇列尾端,換下一筆繼續。不這樣做的話單筆卡死=整條產線停擺
