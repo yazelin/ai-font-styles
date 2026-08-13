@@ -30,10 +30,14 @@ QUEUE = [
 ]
 
 
+REPO = pathlib.Path(__file__).resolve().parent.parent
+TEMPLATES = json.load(open(REPO / "fonts.json"))["templates"]
+
+
 def setup(tmp):
     os.chdir(tmp)
     pathlib.Path("samples/apps").mkdir(parents=True)
-    json.dump({"groups": [], "fonts": [{"n": 114, "name": "既有字"}]},
+    json.dump({"templates": TEMPLATES, "groups": [], "fonts": [{"n": 114, "name": "既有字"}]},
               open("fonts.json", "w"), ensure_ascii=False)
     json.dump({"queue": [dict(q) for q in QUEUE]}, open("queue.json", "w"), ensure_ascii=False)
     os.environ["GITHUB_OUTPUT"] = os.path.join(tmp, "out.txt")
@@ -84,5 +88,20 @@ q, f, out, err, written = run("服務掛掉", infra_down)
 assert isinstance(err, RuntimeError) and not isinstance(err, daily_font.VerifyFailed), err
 assert [x["name"] for x in q] == ["極光流光字", "橡皮印章字"], q
 assert out == "", out
+
+# 4. 模板契約:欄位要跟 pipeline 與 index.html 兩邊填的完全一致(少一個 JS 會留 {xxx} 在剪貼簿,
+#    多一個 Python .format 會炸),而且那句「筆畫本身要是該技法構成」不能被誰順手刪掉
+import re  # noqa: E402
+
+FIELDS = {"pure": {"name", "count", "desc"}, "app": {"headline", "count", "desc", "scene"}}
+for key, want in FIELDS.items():
+    got = set(re.findall(r"\{(\w+)\}", TEMPLATES[key]))
+    assert got == want, (key, got, want)
+    assert "不能只是在制式字體外觀上貼一層材質貼皮" in TEMPLATES[key], key
+    assert "一字不多一字不少" in TEMPLATES[key], key
+
+html = (REPO / "index.html").read_text()
+assert "TMPL = data.templates" in html, "index.html 沒接上 fonts.json 的模板"
+assert "設計一張" not in html, "index.html 又出現手寫短版提示詞"
 
 print("OK")
