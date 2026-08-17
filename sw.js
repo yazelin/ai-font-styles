@@ -1,7 +1,7 @@
 // 圖片本機快取:samples/ 與 cards/ 走 stale-while-revalidate——先回快取(快),
 // 同時背景打一次網路確認 repo 上的檔案有沒有更新,有更新就存回快取,下次造訪
 // 自動拿到新的。原地覆蓋既有圖片(同檔名換內容)不用再手動 bump 版本。
-const CACHE = "afs-v11";
+const CACHE = "afs-v12";
 const IMMUTABLE = /\/(samples|cards)\//;
 
 self.addEventListener("install", () => self.skipWaiting());
