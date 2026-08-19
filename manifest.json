@@ -28,5 +28,9 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "screenshots": [
+    { "src": "images/screenshot-narrow.webp", "sizes": "540x1170", "type": "image/webp", "form_factor": "narrow", "label": "字體風格庫首頁與分類瀏覽" },
+    { "src": "images/screenshot-wide.webp", "sizes": "1280x800", "type": "image/webp", "form_factor": "wide", "label": "字體風格庫首頁與分類瀏覽" }
   ]
 }
