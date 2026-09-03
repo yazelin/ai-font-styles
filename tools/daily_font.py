@@ -51,6 +51,27 @@ def gen_image(prompt: str) -> bytes:
     raise RuntimeError("job timeout")
 
 
+def gemini_call(body: bytes) -> dict:
+    """打 Gemini,遇到 5xx/429/逾時就重試。
+
+    2026-09-02 一天三個時段全掛在這:第一次 503、後兩次讀取逾時,結果整天沒擴充。
+    這是別人家服務的抖動,不是驗字結果,重試比炸掉整條產線划算;真的連三次都不通才 raise。
+    """
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
+    for attempt in range(1, 4):
+        req = urllib.request.Request(
+            url, data=body,
+            headers={"Content-Type": "application/json", "x-goog-api-key": GEMINI_KEY})
+        try:
+            return json.loads(urllib.request.urlopen(req, timeout=120).read())
+        except (urllib.error.URLError, TimeoutError) as e:
+            retriable = not isinstance(e, urllib.error.HTTPError) or e.code >= 500 or e.code == 429
+            if attempt == 3 or not retriable:
+                raise
+            print(f"  QA 呼叫失敗({e}),{attempt * 20}s 後重試", flush=True)
+            time.sleep(attempt * 20)
+
+
 def qa(png: bytes, name: str, expect: str) -> tuple[bool, list]:
     prompt = (
         f"這張圖的主要文字應該是繁體中文「{name}」(共 {len(name)} 個字),{expect}。"
@@ -66,10 +87,7 @@ def qa(png: bytes, name: str, expect: str) -> tuple[bool, list]:
         ]}],
         "generationConfig": {"response_mime_type": "application/json"},
     }).encode()
-    req = urllib.request.Request(
-        f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent",
-        data=body, headers={"Content-Type": "application/json", "x-goog-api-key": GEMINI_KEY})
-    r = json.loads(urllib.request.urlopen(req, timeout=120).read())
+    r = gemini_call(body)
     text = r["candidates"][0]["content"]["parts"][0]["text"].strip()
     if text.startswith("```"):  # 偶爾 mime_type 被無視,夾 markdown fence
         text = text.strip("`").removeprefix("json").strip()

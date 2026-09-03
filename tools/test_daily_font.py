@@ -104,4 +104,43 @@ html = (REPO / "index.html").read_text()
 assert "TMPL = data.templates" in html, "index.html 沒接上 fonts.json 的模板"
 assert "設計一張" not in html, "index.html 又出現手寫短版提示詞"
 
+# 5. Gemini 抖動:503 與逾時要重試,不要一次就把整天的擴充炸掉;非 5xx(如 400 金鑰錯)照樣炸
+class FakeResp:
+    def read(self):
+        return b'{"candidates":[{"content":{"parts":[{"text":"{\\"pass\\": true}"}]}}]}'
+
+
+def fake_urlopen(seq):
+    calls = []
+
+    def _open(req, timeout=None):
+        calls.append(req)
+        e = seq[len(calls) - 1]
+        if e is not None:
+            raise e
+        return FakeResp()
+
+    return _open, calls
+
+
+daily_font.time.sleep = lambda s: None
+import urllib.error  # noqa: E402
+
+http503 = urllib.error.HTTPError("u", 503, "boom", None, None)
+http400 = urllib.error.HTTPError("u", 400, "bad key", None, None)
+
+for case, seq, want_ok, want_calls in [
+    ("503 後成功", [http503, TimeoutError("read timed out"), None], True, 3),
+    ("連三次都掛", [http503, http503, http503], None, 3),
+    ("400 不重試", [http400], None, 1),
+]:
+    daily_font.urllib.request.urlopen, calls = fake_urlopen(seq)
+    try:
+        ok, _ = daily_font.qa(PNG, "測試字", "白底")
+    except urllib.error.HTTPError as e:
+        ok = None
+        assert want_ok is None, (case, e)
+    assert ok == want_ok and len(calls) == want_calls, (case, ok, len(calls))
+    print(f"[{case}] 呼叫 {len(calls)} 次 → {ok}")
+
 print("OK")
