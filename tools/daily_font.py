@@ -21,6 +21,7 @@ CIMG_KEY = os.environ["CODEX_IMAGE_KEY"]
 GEMINI_KEY = os.environ["GEMINI_API_KEY"]
 GEMINI_MODEL = "gemini-flash-latest"
 MAX_ATTEMPTS = 3
+QA_RETRIES = 6  # ponytail: Gemini 過載 503 常持續數分鐘,退避總長 ~7 分鐘才放棄
 
 # 模板放 fonts.json,index.html 複製提示詞時吃同一份。
 # 曾經兩邊各寫一份,網頁那份少了「筆畫本身要是該技法構成」「字數鎖」「別做成簡報卡」,
@@ -55,10 +56,11 @@ def gemini_call(body: bytes) -> dict:
     """打 Gemini,遇到 5xx/429/逾時就重試。
 
     2026-09-02 一天三個時段全掛在這:第一次 503、後兩次讀取逾時,結果整天沒擴充。
-    這是別人家服務的抖動,不是驗字結果,重試比炸掉整條產線划算;真的連三次都不通才 raise。
+    這是別人家服務的抖動,不是驗字結果,重試比炸掉整條產線划算。
+    2026-09-03 三次退避(共 60s)還是全撞 503,改成 6 次、退避總長約 7 分鐘才 raise。
     """
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
-    for attempt in range(1, 4):
+    for attempt in range(1, QA_RETRIES + 1):
         req = urllib.request.Request(
             url, data=body,
             headers={"Content-Type": "application/json", "x-goog-api-key": GEMINI_KEY})
@@ -66,10 +68,10 @@ def gemini_call(body: bytes) -> dict:
             return json.loads(urllib.request.urlopen(req, timeout=120).read())
         except (urllib.error.URLError, TimeoutError) as e:
             retriable = not isinstance(e, urllib.error.HTTPError) or e.code >= 500 or e.code == 429
-            if attempt == 3 or not retriable:
+            if attempt == QA_RETRIES or not retriable:
                 raise
-            print(f"  QA 呼叫失敗({e}),{attempt * 20}s 後重試", flush=True)
-            time.sleep(attempt * 20)
+            print(f"  QA 呼叫失敗({e}),{attempt * 30}s 後重試", flush=True)
+            time.sleep(attempt * 30)
 
 
 def qa(png: bytes, name: str, expect: str) -> tuple[bool, list]:

@@ -131,7 +131,7 @@ http400 = urllib.error.HTTPError("u", 400, "bad key", None, None)
 
 for case, seq, want_ok, want_calls in [
     ("503 後成功", [http503, TimeoutError("read timed out"), None], True, 3),
-    ("連三次都掛", [http503, http503, http503], None, 3),
+    ("連續都掛", [http503] * daily_font.QA_RETRIES, None, daily_font.QA_RETRIES),
     ("400 不重試", [http400], None, 1),
 ]:
     daily_font.urllib.request.urlopen, calls = fake_urlopen(seq)
