@@ -39,7 +39,7 @@ jobs:
       - name: Commit and push
         if: steps.gen.outputs.commit_msg != ''
         env:
-          MSG: ${{ steps.gen.outputs.commit_msg }}   # 走 env 不內插進 shell,字體名來自 queue.json
+          MSG: ${{ steps.gen.outputs.commit_msg }}   # 走 env 不內插進 shell，字體名來自 queue.json
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -47,15 +47,41 @@ jobs:
           git commit -m "$MSG"
           git push
 
+      - name: Refill candidate queue
+        id: refill
+        if: always() && !cancelled()
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python tools/refill_candidates.py
+
+      - name: Commit and push refilled candidates
+        id: commit-refill
+        if: always() && !cancelled() && steps.refill.outputs.refilled != '' && steps.refill.outputs.refilled != '0'
+        env:
+          REFILLED: ${{ steps.refill.outputs.refilled }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add queue.json
+          git commit -m "候選佇列自動補貨：新增 $REFILLED 筆"
+          git push
+          echo "committed=true" >> "$GITHUB_OUTPUT"
+
       - name: Low queue notice
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
+          REFILLED: ${{ steps.refill.outputs.refilled }}
+          REFILL_COMMITTED: ${{ steps.commit-refill.outputs.committed }}
         run: |
           count=$(python -c "import json; print(len(json.load(open('queue.json'))['queue']))")
           echo "queue 剩 $count 筆"
-          if [ "$count" -lt 14 ] && [ -z "$(gh issue list --state open --search '補候選 in:title' --json number --jq '.[0].number')" ]; then
+          issue=$(gh issue list --state open --search '補候選 in:title' --json number --jq '.[0].number // empty')
+          if [ "$REFILL_COMMITTED" = "true" ] && [ -n "$issue" ]; then
+            gh issue comment "$issue" --body "候選佇列已自動補入 $REFILLED 筆新候選，目前共 $count 筆。"
+            gh issue close "$issue" --reason completed
+          elif [ "$count" -lt 14 ] && [ -z "$issue" ]; then
             gh issue create \
-              --title "候選佇列剩 $count 筆,該補候選了" \
-              --body "queue.json 低於 14 筆水位。批次補約 20 個新候選(跟 fonts.json 全表+queue 現有項查重、看分類缺口),走 PR 人工掃過再合。處理完關掉此 issue。"
+              --title "候選佇列剩 $count 筆，該補候選了" \
+              --body "queue.json 低於 14 筆水位，且自動補貨未完成。請檢查 workflow 紀錄，手動補約 20 個新候選；需與 fonts.json 全表及 queue.json 現有項查重，並留意分類分布。"
           fi
