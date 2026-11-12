@@ -15,11 +15,11 @@ import urllib.error
 import urllib.request
 
 from PIL import Image
+from gemini_api import GEMINI_MODEL, generate_content
 
 BASE = os.environ["CODEX_IMAGE_BASE_URL"].rstrip("/")
 CIMG_KEY = os.environ["CODEX_IMAGE_KEY"]
 GEMINI_KEY = os.environ["GEMINI_API_KEY"]
-GEMINI_MODEL = "gemini-flash-latest"
 MAX_ATTEMPTS = 3
 QA_RETRIES = 6  # ponytail: Gemini 過載 503 常持續數分鐘,退避總長 ~7 分鐘才放棄
 
@@ -59,19 +59,7 @@ def gemini_call(body: bytes) -> dict:
     這是別人家服務的抖動,不是驗字結果,重試比炸掉整條產線划算。
     2026-09-03 三次退避(共 60s)還是全撞 503,改成 6 次、退避總長約 7 分鐘才 raise。
     """
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
-    for attempt in range(1, QA_RETRIES + 1):
-        req = urllib.request.Request(
-            url, data=body,
-            headers={"Content-Type": "application/json", "x-goog-api-key": GEMINI_KEY})
-        try:
-            return json.loads(urllib.request.urlopen(req, timeout=120).read())
-        except (urllib.error.URLError, TimeoutError) as e:
-            retriable = not isinstance(e, urllib.error.HTTPError) or e.code >= 500 or e.code == 429
-            if attempt == QA_RETRIES or not retriable:
-                raise
-            print(f"  QA 呼叫失敗({e}),{attempt * 30}s 後重試", flush=True)
-            time.sleep(attempt * 30)
+    return generate_content(body, GEMINI_KEY, retries=QA_RETRIES, sleep=time.sleep)
 
 
 def qa(png: bytes, name: str, expect: str) -> tuple[bool, list]:
