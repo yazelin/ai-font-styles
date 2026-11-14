@@ -89,3 +89,42 @@ with tempfile.TemporaryDirectory() as tmp:
     print("【壞格式】候選格式錯誤，原佇列未變")
 
 print("OK")
+
+
+# 四、分批：第一批只有 15 筆，第二批補足；兩批不重複，共寫入 20 筆。
+with tempfile.TemporaryDirectory() as tmp:
+    queue_path, fonts_path, _ = fixture(tmp)
+    batches = [[candidate(i) for i in range(15)], [candidate(i) for i in range(10, 25)]]
+    calls = []
+    def two_batches(prompt):
+        calls.append(prompt)
+        return response(batches[len(calls) - 1])
+    added = refill.refill_queue(queue_path, fonts_path, two_batches)
+    saved = json.loads(queue_path.read_text(encoding="utf-8"))
+    assert added == 20 and len(saved["queue"]) == 20 and len(calls) == 2, (added, len(calls))
+    assert len({i["name"] for i in saved["queue"]}) == 20
+    print("【分批補貨】兩批湊滿 20 筆")
+
+
+# 五、第一批呼叫失敗、第二批成功：仍可補滿；全部失敗則不寫入。
+with tempfile.TemporaryDirectory() as tmp:
+    queue_path, fonts_path, _ = fixture(tmp)
+    state = {"n": 0}
+    def flaky(prompt):
+        state["n"] += 1
+        if state["n"] == 1:
+            raise TimeoutError("read timed out")
+        return response([candidate(i) for i in range(20)])
+    assert refill.refill_queue(queue_path, fonts_path, flaky) == 20
+    queue_path, fonts_path, _ = fixture(tmp)
+    before = queue_path.read_text(encoding="utf-8")
+    try:
+        refill.refill_queue(queue_path, fonts_path, lambda p: (_ for _ in ()).throw(TimeoutError("x")))
+    except refill.RefillRejected:
+        pass
+    else:
+        raise AssertionError("全部失敗時應拒絕")
+    assert queue_path.read_text(encoding="utf-8") == before
+    print("【暫時失敗】重試成功可補滿；全失敗不寫入")
+
+print("OK")
