@@ -9,7 +9,7 @@ import urllib.request
 GEMINI_MODEL = "gemini-flash-latest"
 
 
-def generate_content(body: bytes, api_key: str, retries: int = 6, sleep=time.sleep) -> dict:
+def generate_content(body: bytes, api_key: str, retries: int = 6, sleep=time.sleep, timeout: int = 120) -> dict:
     """沿用每日驗字的 Gemini API、驗證方式與退避重試。"""
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
     for attempt in range(1, retries + 1):
@@ -17,7 +17,7 @@ def generate_content(body: bytes, api_key: str, retries: int = 6, sleep=time.sle
             url, data=body,
             headers={"Content-Type": "application/json", "x-goog-api-key": api_key})
         try:
-            return json.loads(urllib.request.urlopen(req, timeout=120).read())
+            return json.loads(urllib.request.urlopen(req, timeout=timeout).read())
         except (urllib.error.URLError, TimeoutError) as e:
             retriable = not isinstance(e, urllib.error.HTTPError) or e.code >= 500 or e.code == 429
             if attempt == retries or not retriable:

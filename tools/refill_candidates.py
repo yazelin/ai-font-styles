@@ -12,7 +12,8 @@ from gemini_api import generate_content
 
 REFILL_BELOW = 14
 REFILL_COUNT = 20
-MODEL_CANDIDATE_COUNT = 30
+MODEL_CANDIDATE_COUNT = 15  # 一次 30 筆會讓 Gemini 回應過久逾時，改分批
+MAX_MODEL_CALLS = 3
 VALID_FIELDS = {"name", "tag", "group", "desc", "scenes", "app", "headline"}
 
 
@@ -89,14 +90,14 @@ def gemini_candidate_model(prompt: str, api_key: str | None = None) -> str:
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {
             "response_mime_type": "application/json",
-            "maxOutputTokens": 10000,
+            "maxOutputTokens": 8000,
         },
     }).encode()
-    response = generate_content(body, key, sleep=time.sleep)
+    response = generate_content(body, key, sleep=time.sleep, timeout=180)
     return response["candidates"][0]["content"]["parts"][0]["text"]
 
 
-def parse_candidates(raw: str, fonts: list, queue: list, groups: list) -> list:
+def parse_candidates(raw: str, fonts: list, queue: list, groups: list, require: int = REFILL_COUNT) -> list:
     try:
         decoded = json.loads(raw)
     except (TypeError, json.JSONDecodeError) as error:
@@ -124,10 +125,10 @@ def parse_candidates(raw: str, fonts: list, queue: list, groups: list) -> list:
         seen.add(key)
         unique.append(item)
 
-    if len(unique) < REFILL_COUNT:
+    if len(unique) < require:
         raise RefillRejected(
-            f"去除重複後只有 {len(unique)} 筆合格候選，需要至少 {REFILL_COUNT} 筆")
-    return unique[:REFILL_COUNT]
+            f"去除重複後只有 {len(unique)} 筆合格候選，需要至少 {require} 筆")
+    return unique
 
 
 def refill_queue(queue_path="queue.json", fonts_path="fonts.json", model_call=gemini_candidate_model) -> int:
@@ -144,14 +145,28 @@ def refill_queue(queue_path="queue.json", fonts_path="fonts.json", model_call=ge
         print(f"佇列有 {len(queue)} 筆，未低於 {REFILL_BELOW} 筆門檻。")
         return 0
 
-    prompt = build_prompt(fonts, queue, groups)
-    try:
-        raw = model_call(prompt)
-        additions = parse_candidates(raw, fonts, queue, groups)
-    except RefillRejected:
-        raise
-    except Exception as error:
-        raise RefillRejected(f"模型呼叫或回應讀取失敗：{error}") from error
+    # 分批呼叫：每批把已收到的候選當成既有名稱，湊滿 REFILL_COUNT 筆才寫入
+    additions: list = []
+    last_error = None
+    for _ in range(MAX_MODEL_CALLS):
+        prompt = build_prompt(fonts, [*queue, *additions], groups)
+        try:
+            raw = model_call(prompt)
+            additions.extend(parse_candidates(raw, fonts, [*queue, *additions], groups, require=0))
+            last_error = None
+        except RefillRejected as error:
+            last_error = error
+        except Exception as error:
+            last_error = RefillRejected(f"模型呼叫或回應讀取失敗：{error}")
+        if len(additions) >= REFILL_COUNT:
+            break
+    if len(additions) < REFILL_COUNT:
+        if last_error is not None and not additions:
+            raise last_error
+        raise RefillRejected(
+            f"去除重複後只有 {len(additions)} 筆合格候選，需要至少 {REFILL_COUNT} 筆"
+            + (f"（最後一次錯誤：{last_error}）" if last_error else ""))
+    additions = additions[:REFILL_COUNT]
 
     updated = dict(queue_data)
     updated["queue"] = [*queue, *additions]
