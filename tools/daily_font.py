@@ -13,7 +13,7 @@ import time
 import urllib.request
 
 from PIL import Image
-from gemini_web import chat_file
+from gemini_web import chat_file, first_json_object
 
 BASE = os.environ["CODEX_IMAGE_BASE_URL"].rstrip("/")
 CIMG_KEY = os.environ["CODEX_IMAGE_KEY"]
@@ -70,37 +70,6 @@ def gemini_call(prompt: str, png: bytes) -> str:
     )
 
 
-def _first_json_object(text: str) -> str:
-    """略過 markdown fence 與前後文字，取第一個完整 JSON 物件。"""
-    text = re.sub(r"```(?:json)?", "", text, flags=re.IGNORECASE).strip()
-    start = text.find("{")
-    if start < 0:
-        raise ValueError("回應中沒有 JSON 物件")
-
-    depth = 0
-    in_string = False
-    escaped = False
-    for index in range(start, len(text)):
-        char = text[index]
-        if in_string:
-            if escaped:
-                escaped = False
-            elif char == "\\":
-                escaped = True
-            elif char == '"':
-                in_string = False
-            continue
-        if char == '"':
-            in_string = True
-        elif char == "{":
-            depth += 1
-        elif char == "}":
-            depth -= 1
-            if depth == 0:
-                return text[start:index + 1]
-    raise ValueError("回應中的 JSON 物件不完整")
-
-
 def qa(png: bytes, name: str, expect: str) -> tuple[bool, list]:
     prompt = (
         f"這張圖的主要文字應該是繁體中文「{name}」(共 {len(name)} 個字),{expect}。"
@@ -111,7 +80,7 @@ def qa(png: bytes, name: str, expect: str) -> tuple[bool, list]:
     )
     text = gemini_call(prompt, png).strip()
     try:
-        verdict = json.loads(_first_json_object(text))
+        verdict = json.loads(first_json_object(re.sub(r"```(?:json)?", "", text, flags=re.IGNORECASE)))
         if not isinstance(verdict, dict):
             raise ValueError("回應不是 JSON 物件")
     except (json.JSONDecodeError, ValueError):

@@ -18,7 +18,7 @@ class _TemporaryResponseError(RuntimeError):
     """服務回應不完整或失敗，可透過重試恢復。"""
 
 
-def _first_json_object(text: str) -> str:
+def first_json_object(text: str) -> str:
     """從可能帶有前後文字的回應中取第一個完整 JSON 物件。"""
     start = text.find("{")
     if start < 0:
@@ -53,7 +53,7 @@ def _parse_response(raw: bytes) -> dict:
     try:
         value = json.loads(text)
     except json.JSONDecodeError:
-        value = json.loads(_first_json_object(text))
+        value = json.loads(first_json_object(text))
     if not isinstance(value, dict):
         raise ValueError("回應不是 JSON 物件")
     return value
@@ -88,7 +88,8 @@ def chat_file(
             method="POST",
         )
         try:
-            response = urllib.request.urlopen(req, timeout=timeout).read()
+            # 服務端最多等 timeout 秒才回，客戶端要多留時間，不然剛好跑滿時會先斷線
+            response = urllib.request.urlopen(req, timeout=timeout + 60).read()
             try:
                 result = _parse_response(response)
             except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as e:
@@ -99,7 +100,8 @@ def chat_file(
                 raise _TemporaryResponseError(
                     f"gemini-web 回報 success:false 或缺少文字回應：{text!r}"
                 )
-            if any(phrase in text for phrase in _UPLOAD_FAILURE_PHRASES):
+            # 有 JSON 就是模型有作答；只有沒 JSON 的回覆才比對上傳失敗字句，免得驗字 issues 裡的話被誤判
+            if "{" not in text and any(phrase in text for phrase in _UPLOAD_FAILURE_PHRASES):
                 raise _TemporaryResponseError(f"gemini-web 疑似沒有收到附件：{text[:200]}")
             return text
         except urllib.error.HTTPError as e:

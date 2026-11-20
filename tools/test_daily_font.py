@@ -152,7 +152,7 @@ req, request_timeout = calls[0]
 request_body = json.loads(req.data)
 headers = {name.lower(): value for name, value in req.header_items()}
 assert req.full_url == "http://gemini-web/api/chat-file", req.full_url
-assert request_timeout == 240 and request_body["timeout"] == 240, (request_timeout, request_body)
+assert request_timeout == 300 and request_body["timeout"] == 240, (request_timeout, request_body)
 assert request_body["filename"] == "qa.png"
 assert headers["content-type"] == "application/json" and headers["x-goog-api-key"] == "test-key", headers
 assert "測試字" in request_body["prompt"]
@@ -206,6 +206,14 @@ else:
 assert len(calls) == daily_font.QA_RETRIES
 assert sleep_calls == [30, 60, 90, 120, 150], sleep_calls
 print(f"[假成功耗盡] 呼叫 {len(calls)} 次後 raise")
+
+# 負控制：模型有作答（帶 JSON），issues 裡剛好出現「沒有看到」「請提供」也要照判定走，不能誤判成上傳失敗。
+sleep_calls.clear()
+verdict = '{"pass": false, "issues": ["沒有看到圖片中的第三個字", "請提供完整筆畫"]}'
+daily_font.urllib.request.urlopen, calls = fake_urlopen([answer(verdict)])
+assert daily_font.qa(PNG, "測試字", "白底") == (False, ["沒有看到圖片中的第三個字", "請提供完整筆畫"])
+assert len(calls) == 1 and sleep_calls == [], (len(calls), sleep_calls)
+print("[issues 含上傳失敗字句] 照判定走，不重試")
 
 # 非 429 的 4xx 直接 raise，不退避重試。
 sleep_calls.clear()
