@@ -33,7 +33,8 @@ jobs:
         env:
           CODEX_IMAGE_BASE_URL: ${{ secrets.CODEX_IMAGE_BASE_URL }}
           CODEX_IMAGE_KEY: ${{ secrets.CODEX_IMAGE_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_WEB_BASE_URL: ${{ secrets.GEMINI_WEB_BASE_URL }}
+          GEMINI_WEB_KEY: ${{ secrets.GEMINI_WEB_KEY }}
         run: python tools/daily_font.py
 
       - name: Commit and push

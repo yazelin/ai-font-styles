@@ -1,27 +1,26 @@
 #!/usr/bin/env python3
 """每日字體擴充 pipeline:pop queue.json → 生純字+應用圖 → Gemini 驗字 → 更新 fonts.json
 
-環境變數:CODEX_IMAGE_BASE_URL、CODEX_IMAGE_KEY、GEMINI_API_KEY
+環境變數:CODEX_IMAGE_BASE_URL、CODEX_IMAGE_KEY、GEMINI_WEB_BASE_URL、GEMINI_WEB_KEY
 在 repo 根目錄執行。成功後由 workflow 負責 commit。
 """
-import base64
 import datetime
 import io
 import json
 import os
-import sys
+import re
 import time
-import urllib.error
 import urllib.request
 
 from PIL import Image
-from gemini_api import GEMINI_MODEL, generate_content
+from gemini_web import chat_file, first_json_object
 
 BASE = os.environ["CODEX_IMAGE_BASE_URL"].rstrip("/")
 CIMG_KEY = os.environ["CODEX_IMAGE_KEY"]
-GEMINI_KEY = os.environ["GEMINI_API_KEY"]
+GEMINI_WEB_BASE_URL = os.environ["GEMINI_WEB_BASE_URL"].rstrip("/")
+GEMINI_WEB_KEY = os.environ["GEMINI_WEB_KEY"]
 MAX_ATTEMPTS = 3
-QA_RETRIES = 6  # ponytail: Gemini 過載 503 常持續數分鐘,退避總長 ~7 分鐘才放棄
+QA_RETRIES = 6  # 暫時性錯誤退避總長約 7 分鐘才放棄
 
 # 模板放 fonts.json,index.html 複製提示詞時吃同一份。
 # 曾經兩邊各寫一份,網頁那份少了「筆畫本身要是該技法構成」「字數鎖」「別做成簡報卡」,
@@ -52,14 +51,23 @@ def gen_image(prompt: str) -> bytes:
     raise RuntimeError("job timeout")
 
 
-def gemini_call(body: bytes) -> dict:
-    """打 Gemini,遇到 5xx/429/逾時就重試。
-
-    2026-09-02 一天三個時段全掛在這:第一次 503、後兩次讀取逾時,結果整天沒擴充。
-    這是別人家服務的抖動,不是驗字結果,重試比炸掉整條產線划算。
-    2026-09-03 三次退避(共 60s)還是全撞 503,改成 6 次、退避總長約 7 分鐘才 raise。
-    """
-    return generate_content(body, GEMINI_KEY, retries=QA_RETRIES, sleep=time.sleep)
+def gemini_call(prompt: str, png: bytes) -> str:
+    """把縮圖交給自架 gemini-web；服務錯誤與上傳失敗由 wrapper 退避重試。"""
+    with Image.open(io.BytesIO(png)) as source:
+        image = source.convert("RGB")
+    image.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
+    resized = io.BytesIO()
+    image.save(resized, format="PNG", optimize=True)
+    return chat_file(
+        prompt,
+        resized.getvalue(),
+        "qa.png",
+        base_url=GEMINI_WEB_BASE_URL,
+        key=GEMINI_WEB_KEY,
+        retries=QA_RETRIES,
+        sleep=time.sleep,
+        timeout=240,
+    )
 
 
 def qa(png: bytes, name: str, expect: str) -> tuple[bool, list]:
@@ -70,21 +78,13 @@ def qa(png: bytes, name: str, expect: str) -> tuple[bool, list]:
         "3) 風格是否大致符合描述。"
         '只回傳 JSON:{"pass": true/false, "issues": ["..."]}'
     )
-    body = json.dumps({
-        "contents": [{"parts": [
-            {"text": prompt},
-            {"inline_data": {"mime_type": "image/png", "data": base64.b64encode(png).decode()}},
-        ]}],
-        "generationConfig": {"response_mime_type": "application/json"},
-    }).encode()
-    r = gemini_call(body)
-    text = r["candidates"][0]["content"]["parts"][0]["text"].strip()
-    if text.startswith("```"):  # 偶爾 mime_type 被無視,夾 markdown fence
-        text = text.strip("`").removeprefix("json").strip()
+    text = gemini_call(prompt, png).strip()
     try:
-        verdict = json.loads(text)
-    except json.JSONDecodeError:
-        # ponytail: Gemini 偶爾吐壞 JSON,別炸掉整天——當成驗字沒過讓外層重試
+        verdict = json.loads(first_json_object(re.sub(r"```(?:json)?", "", text, flags=re.IGNORECASE)))
+        if not isinstance(verdict, dict):
+            raise ValueError("回應不是 JSON 物件")
+    except (json.JSONDecodeError, ValueError):
+        # 回覆不是合法 JSON 時仍視為驗字未過,讓外層重新生圖。
         print(f"  QA JSON 解析失敗,視為未過:{text[:200]!r}", flush=True)
         return False, ["QA 回傳非合法 JSON"]
     return bool(verdict.get("pass")), verdict.get("issues", [])

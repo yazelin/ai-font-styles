@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """daily_font 的佇列流程自我檢查:python tools/test_daily_font.py
 
-只驗「哪種失敗要卡住、哪種要換下一筆」這段——生圖跟驗字都是假的,不打任何 API。
+只驗流程失敗分類與驗字請求格式；所有網路回應都由替身提供,不連網。
 """
+import base64
 import io
 import json
 import os
@@ -12,7 +13,8 @@ import tempfile
 
 os.environ.setdefault("CODEX_IMAGE_BASE_URL", "http://x")
 os.environ.setdefault("CODEX_IMAGE_KEY", "x")
-os.environ.setdefault("GEMINI_API_KEY", "x")
+os.environ.setdefault("GEMINI_WEB_BASE_URL", "http://gemini-web")
+os.environ.setdefault("GEMINI_WEB_KEY", "x")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import daily_font  # noqa: E402
@@ -104,43 +106,126 @@ html = (REPO / "index.html").read_text()
 assert "TMPL = data.templates" in html, "index.html 沒接上 fonts.json 的模板"
 assert "設計一張" not in html, "index.html 又出現手寫短版提示詞"
 
-# 5. Gemini 抖動:503 與逾時要重試,不要一次就把整天的擴充炸掉;非 5xx(如 400 金鑰錯)照樣炸
+# 5. gemini-web 回應與重試：成功回應解析 JSON、fence、success:false 與假成功文字
 class FakeResp:
+    def __init__(self, payload):
+        self.payload = payload
+
     def read(self):
-        return b'{"candidates":[{"content":{"parts":[{"text":"{\\"pass\\": true}"}]}}]}'
+        if isinstance(self.payload, bytes):
+            return self.payload
+        return json.dumps(self.payload, ensure_ascii=False).encode("utf-8")
 
 
 def fake_urlopen(seq):
     calls = []
 
     def _open(req, timeout=None):
-        calls.append(req)
+        calls.append((req, timeout))
         e = seq[len(calls) - 1]
-        if e is not None:
+        if isinstance(e, BaseException):
             raise e
-        return FakeResp()
+        return FakeResp(e)
 
     return _open, calls
 
 
-daily_font.time.sleep = lambda s: None
 import urllib.error  # noqa: E402
 
-http503 = urllib.error.HTTPError("u", 503, "boom", None, None)
-http400 = urllib.error.HTTPError("u", 400, "bad key", None, None)
+def answer(text, success=True):
+    return {"success": success, "text": text, "prompt": "", "elapsed_seconds": 0.1}
 
-for case, seq, want_ok, want_calls in [
-    ("503 後成功", [http503, TimeoutError("read timed out"), None], True, 3),
-    ("連續都掛", [http503] * daily_font.QA_RETRIES, None, daily_font.QA_RETRIES),
-    ("400 不重試", [http400], None, 1),
-]:
-    daily_font.urllib.request.urlopen, calls = fake_urlopen(seq)
-    try:
-        ok, _ = daily_font.qa(PNG, "測試字", "白底")
-    except urllib.error.HTTPError as e:
-        ok = None
-        assert want_ok is None, (case, e)
-    assert ok == want_ok and len(calls) == want_calls, (case, ok, len(calls))
-    print(f"[{case}] 呼叫 {len(calls)} 次 → {ok}")
+
+daily_font.GEMINI_WEB_BASE_URL = "http://gemini-web"
+daily_font.GEMINI_WEB_KEY = "test-key"
+sleep_calls = []
+daily_font.time.sleep = sleep_calls.append
+
+# 正常通過，同時確認實際送出 PNG 縮圖、正確檔名、timeout 與驗證 header。
+large = io.BytesIO()
+Image.new("RGB", (2048, 1536), "white").save(large, "PNG")
+daily_font.urllib.request.urlopen, calls = fake_urlopen([answer('{"pass": true, "issues": []}')])
+ok, issues = daily_font.qa(large.getvalue(), "測試字", "白底")
+assert (ok, issues) == (True, [])
+assert len(calls) == 1
+req, request_timeout = calls[0]
+request_body = json.loads(req.data)
+headers = {name.lower(): value for name, value in req.header_items()}
+assert req.full_url == "http://gemini-web/api/chat-file", req.full_url
+assert request_timeout == 300 and request_body["timeout"] == 240, (request_timeout, request_body)
+assert request_body["filename"] == "qa.png"
+assert headers["content-type"] == "application/json" and headers["x-goog-api-key"] == "test-key", headers
+assert "測試字" in request_body["prompt"]
+sent_image = Image.open(io.BytesIO(base64.b64decode(request_body["file"])))
+assert sent_image.format == "PNG" and max(sent_image.size) <= 1024, sent_image.size
+print(f"[正常通過／縮圖] 上傳 {sent_image.size} PNG")
+
+# 回覆前後有文字，且 JSON 以 markdown fence 包住，仍取第一個 JSON 物件。
+fenced = '檢查結果：\n```json\n{"pass": true, "issues": []}\n```\n完成'
+daily_font.urllib.request.urlopen, calls = fake_urlopen([answer(fenced)])
+assert daily_font.qa(PNG, "測試字", "白底") == (True, [])
+assert len(calls) == 1
+print("[JSON fence] 通過")
+
+# 回覆內容的 JSON 被截斷時，維持原有「視為驗字未過」行為。
+daily_font.urllib.request.urlopen, calls = fake_urlopen([answer('{"pass": true')])
+assert daily_font.qa(PNG, "測試字", "白底") == (False, ["QA 回傳非合法 JSON"])
+assert len(calls) == 1
+print("[JSON 格式錯誤] 視為未過")
+
+# success:false 是暫時性失敗，退避後成功。
+sleep_calls.clear()
+daily_font.urllib.request.urlopen, calls = fake_urlopen([
+    answer("服務忙碌", success=False), answer('{"pass": true, "issues": []}')
+])
+assert daily_font.qa(PNG, "測試字", "白底") == (True, [])
+assert len(calls) == 2 and sleep_calls == [30], (len(calls), sleep_calls)
+print("[success:false 後重試] 呼叫 2 次")
+
+# 503 與逾時都重試；退避時間依 attempt * 30 秒遞增。
+sleep_calls.clear()
+http503 = urllib.error.HTTPError("u", 503, "boom", None, None)
+daily_font.urllib.request.urlopen, calls = fake_urlopen([
+    http503, TimeoutError("read timed out"), answer('{"pass": true, "issues": []}')
+])
+assert daily_font.qa(PNG, "測試字", "白底") == (True, [])
+assert len(calls) == 3 and sleep_calls == [30, 60], (len(calls), sleep_calls)
+print("[503／逾時後成功] 呼叫 3 次")
+
+# 上傳失敗型假成功不能當成驗字未過；用完重試必須 raise。
+sleep_calls.clear()
+daily_font.urllib.request.urlopen, calls = fake_urlopen([
+    answer("我沒有看到附件") for _ in range(daily_font.QA_RETRIES)
+])
+try:
+    daily_font.qa(PNG, "測試字", "白底")
+except RuntimeError as e:
+    assert "沒有收到附件" in str(e) or "沒看到附件" in str(e), e
+else:
+    raise AssertionError("假成功文字重試用盡後應 raise,不能當成驗字未過")
+assert len(calls) == daily_font.QA_RETRIES
+assert sleep_calls == [30, 60, 90, 120, 150], sleep_calls
+print(f"[假成功耗盡] 呼叫 {len(calls)} 次後 raise")
+
+# 負控制：模型有作答（帶 JSON），issues 裡剛好出現「沒有看到」「請提供」也要照判定走，不能誤判成上傳失敗。
+sleep_calls.clear()
+verdict = '{"pass": false, "issues": ["沒有看到圖片中的第三個字", "請提供完整筆畫"]}'
+daily_font.urllib.request.urlopen, calls = fake_urlopen([answer(verdict)])
+assert daily_font.qa(PNG, "測試字", "白底") == (False, ["沒有看到圖片中的第三個字", "請提供完整筆畫"])
+assert len(calls) == 1 and sleep_calls == [], (len(calls), sleep_calls)
+print("[issues 含上傳失敗字句] 照判定走，不重試")
+
+# 非 429 的 4xx 直接 raise，不退避重試。
+sleep_calls.clear()
+http400 = urllib.error.HTTPError("u", 400, "bad request", None, None)
+daily_font.urllib.request.urlopen, calls = fake_urlopen([http400])
+try:
+    daily_font.qa(PNG, "測試字", "白底")
+except urllib.error.HTTPError as e:
+    assert e.code == 400
+else:
+    raise AssertionError("HTTP 400 應直接 raise")
+assert len(calls) == 1 and sleep_calls == [], (len(calls), sleep_calls)
+print("[400 不重試] 呼叫 1 次後 raise")
 
 print("OK")
