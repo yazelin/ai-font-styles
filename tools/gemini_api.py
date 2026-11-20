@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""共用 Gemini generateContent 呼叫與暫時性錯誤重試。"""
+"""候選補貨流程使用的官方 Gemini generateContent 呼叫與暫時性錯誤重試。"""
 import json
 import time
 import urllib.error
@@ -10,7 +10,7 @@ GEMINI_MODEL = "gemini-flash-latest"
 
 
 def generate_content(body: bytes, api_key: str, retries: int = 6, sleep=time.sleep) -> dict:
-    """沿用每日驗字的 Gemini API、驗證方式與退避重試。"""
+    """呼叫官方 generateContent API，遇到暫時性網路錯誤時退避重試。"""
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
     for attempt in range(1, retries + 1):
         req = urllib.request.Request(
